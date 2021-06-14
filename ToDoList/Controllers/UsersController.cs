@@ -153,7 +153,7 @@ namespace ToDoList.UI.Controllers
 
 		/// <summary>
 		/// Create a user.
-		/// NO authentication required.
+		/// No authentication required.
 		/// </summary>
 		/// <param name="data">Necessary data to create a user.</param>
 		/// <returns>User details.</returns>
