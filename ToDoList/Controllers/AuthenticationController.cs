@@ -12,6 +12,7 @@ using Repository.DTOs.Users;
 using ToDoList.UI.Configurations;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Http;
+using Repository.Exceptions;
 
 namespace ToDoList.UI.Controllers
 {
@@ -65,26 +66,27 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(AuthenticationData))]
 		public async Task<ActionResult<AuthenticationResult>> Login(AuthenticationData data)
 		{
-			if (data == null || data.Login == null || data.Password == null)
-			{
-				ModelState.AddModelError(string.Empty, "Authentication data not received correctly");
-
-				return BadRequest(ModelState);
-			}
+			if (data == null || string.IsNullOrEmpty(data.Login)  || string.IsNullOrEmpty(data.Password))
+				return BadRequest("Authentication data not received correctly");
 
 			var expireMinutes = 30;
 
 #if DEBUG
 			expireMinutes = 60 * 24;
 #endif
-			var authenticationResult = await repo.Authenticate(data);
-			var isValid = authenticationResult != null;
+			AuthenticationResult authenticationResult;
 
-			if (!isValid)
+			try
 			{
-				ModelState.AddModelError(string.Empty, "Invalid credentials");
-
-				return NotFound(ModelState);
+				authenticationResult = await repo.Authenticate(data);
+			}
+			catch (NotFoundException notFoundException)
+			{
+				return NotFound(notFoundException);
+			}
+			catch (Exception exception)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, exception.Message);
 			}
 
 			var tokenHandler = new JwtSecurityTokenHandler();

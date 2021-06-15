@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
 using Domains;
+using Repository.Exceptions;
 
 namespace ToDoList.UI.Controllers
 {
@@ -87,14 +88,14 @@ namespace ToDoList.UI.Controllers
 			{
 				user = await repo.Get(id);
 			}
+			catch (NotFoundException notFoundException)
+			{
+				return NotFound(notFoundException);
+			}
 			catch (Exception exception)
 			{
-				ModelState.AddModelError(string.Empty, exception.Message);
-
-				return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}
-
-			if (user == null) return NotFound(user);
 
 			return user;
 		}
@@ -134,11 +135,9 @@ namespace ToDoList.UI.Controllers
 				await repo.ChangePassword(id, data);
 				await repo.SaveChangesAsync();
 			}
-			catch (ApplicationException applicationException)
+			catch (NotFoundException notFoundException)
 			{
-				ModelState.AddModelError("User", applicationException.Message);
-
-				return NotFound(ModelState);
+				return NotFound(notFoundException);
 			}
 			catch (Exception exception)
 			{
@@ -225,17 +224,15 @@ namespace ToDoList.UI.Controllers
 				await repo.AlterUserRole(data);
 				await repo.SaveChangesAsync();
 			}
+			catch (NotFoundException notFoundException)
+			{
+				return NotFound(notFoundException);
+			}
 			catch (InvalidOperationException operationException)
 			{
 				ModelState.AddModelError(string.Empty, operationException.Message);
 
 				return StatusCode(StatusCodes.Status403Forbidden, ModelState);
-			}
-			catch (ApplicationException applicationException)
-			{
-				ModelState.AddModelError(nameof(User), applicationException.Message);
-
-				return NotFound(ModelState);
 			}
 			catch (Exception exception)
 			{
@@ -273,11 +270,9 @@ namespace ToDoList.UI.Controllers
 				await repo.Delete(id);
 				await repo.SaveChangesAsync();
 			}
-			catch (ApplicationException applicationException)
+			catch (NotFoundException notFoundException)
 			{
-				ModelState.AddModelError(nameof(User), applicationException.Message);
-
-				return NotFound(ModelState);
+				return NotFound(notFoundException);
 			}
 			catch (Exception exception)
 			{

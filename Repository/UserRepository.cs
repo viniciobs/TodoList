@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Linq.Expressions;
 using Repository.Util;
+using Repository.Exceptions;
 
 namespace Repository
 {
@@ -60,8 +61,7 @@ namespace Repository
 		public async Task<UserResult> Get(Guid id)
 		{
 			var user = await _db.User.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
-
-			if (user == null) return null;
+			if (user == null) throw new NotFoundException(typeof(User));
 
 			return new CreateUserResult()
 			{
@@ -75,8 +75,7 @@ namespace Repository
 		public async Task<AuthenticationResult> Authenticate(AuthenticationData data)
 		{
 			var user = await _db.User.AsNoTracking().SingleOrDefaultAsync(x => x.Login == data.Login && x.Password == data.Password);
-
-			if (user == null) return null;
+			if (user == null) throw new NotFoundException(typeof(User), "Invalid credentials");
 
 			return new AuthenticationResult()
 			{
@@ -84,6 +83,34 @@ namespace Repository
 				UserName = user.Name,
 				Role = user.Role
 			};
+		}
+
+		public async Task ChangePassword(Guid userId, ChangePasswordData data)
+		{
+			var user = await _db.User.FirstOrDefaultAsync(x => x.Id == userId && x.Password == data.OldPassword);
+			if (user == null) throw new NotFoundException(typeof(User));
+
+			user.SetPassword(data.NewPassword);
+		}
+
+		public async Task Delete(Guid userId)
+		{
+			var user = await _db.User.FindAsync(userId);
+			if (user == null) throw new NotFoundException(typeof(User));
+
+			_db.User.Remove(user);
+		}
+
+		public async Task AlterUserRole(AlterUserRoleData data)
+		{
+			var authenticatedUser = await _db.User.FindAsync(data.AuthenticatedUser);
+			if (authenticatedUser == null) throw new NotFoundException(typeof(User), "Authenticated user not found");
+			if (authenticatedUser.Role != UserRole.Admin) throw new InvalidOperationException("The authenticated user has no rights to alter user's role.");
+
+			var targetUser = await _db.User.FindAsync(data.TargetUser);
+			if (targetUser == null) throw new NotFoundException(typeof(User), "Target user not found");
+
+			authenticatedUser.AlterUserRole(targetUser, data.NewRole);
 		}
 
 		private Expression<Func<User, bool>> GetFilterExpression(string name, string login)
@@ -113,34 +140,6 @@ namespace Repository
 			}
 
 			return predicate;
-		}
-
-		public async Task ChangePassword(Guid userId, ChangePasswordData data)
-		{
-			var user = await _db.User.FirstOrDefaultAsync(x => x.Id == userId && x.Password == data.OldPassword);
-			if (user == null) throw new ApplicationException("User not found");
-
-			user.SetPassword(data.NewPassword);
-		}
-
-		public async Task Delete(Guid userId)
-		{
-			var user = await _db.User.FindAsync(userId);
-			if (user == null) throw new ApplicationException("User not found");
-
-			_db.User.Remove(user);
-		}
-
-		public async Task AlterUserRole(AlterUserRoleData data)
-		{
-			var authenticatedUser = await _db.User.FindAsync(data.AuthenticatedUser);
-			if (authenticatedUser == null) throw new ApplicationException("Authenticated user not found");
-			if (authenticatedUser.Role != UserRole.Admin) throw new InvalidOperationException("The authenticated user has no rights to alter user's role.");
-
-			var targetUser = await _db.User.FindAsync(data.TargetUser);
-			if (targetUser == null) throw new ApplicationException("Target user not found");
-
-			authenticatedUser.AlterUserRole(targetUser, data.NewRole);
 		}
 
 		#endregion Methods
