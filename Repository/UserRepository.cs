@@ -46,7 +46,7 @@ namespace Repository
 		{
 			var filterPredicate = GetFilterExpression(name, login);
 
-			var users = await _db.User.AsNoTracking().Where(filterPredicate).ToArrayAsync();
+			var users = await _db.User.AsNoTracking().Where(filterPredicate).OrderBy(x => x.Name).ToArrayAsync();
 
 			return users.Select(x => new UserResult()
 			{
