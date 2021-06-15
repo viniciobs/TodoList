@@ -7,6 +7,7 @@ using ToDoList.UI.Controllers.Base;
 using Microsoft.AspNetCore.Http;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
+using Domains;
 
 namespace ToDoList.UI.Controllers
 {
@@ -199,6 +200,51 @@ namespace ToDoList.UI.Controllers
 			}
 
 			return Created(nameof(Get), result);
+		}
+
+		[HttpPatch]
+		[Route("{targetUserid:Guid}/AlterRole")]
+		[Authorize(Roles = "Admin")]
+		[ProducesDefaultResponseType]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<IActionResult> AlterUserRole(Guid targetUserid, [FromBody] UserRole targetUserNewRole)
+		{
+			try
+			{
+				var data = new AlterUserRoleData()
+				{
+					AuthenticatedUser = authenticatedUser.Id,
+					TargetUser = targetUserid,
+					NewRole = targetUserNewRole
+				};
+
+				await repo.AlterUserRole(data);
+				await repo.SaveChangesAsync();
+			}
+			catch (InvalidOperationException operationException)
+			{
+				ModelState.AddModelError(string.Empty, operationException.Message);
+
+				return StatusCode(StatusCodes.Status403Forbidden, ModelState);
+			}
+			catch (ApplicationException applicationException)
+			{
+				ModelState.AddModelError(nameof(User), applicationException.Message);
+
+				return NotFound(ModelState);
+			}
+			catch (Exception exception)
+			{
+				ModelState.AddModelError(string.Empty, exception.Message);
+
+				return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+			}
+
+			return NoContent();
 		}
 
 		#region Documentation

@@ -131,6 +131,18 @@ namespace Repository
 			_db.User.Remove(user);
 		}
 
+		public async Task AlterUserRole(AlterUserRoleData data)
+		{
+			var authenticatedUser = await _db.User.FindAsync(data.AuthenticatedUser);
+			if (authenticatedUser == null) throw new ApplicationException("Authenticated user not found");
+			if (authenticatedUser.Role != UserRole.Admin) throw new InvalidOperationException("The authenticated user has no rights to alter user's role.");
+
+			var targetUser = await _db.User.FindAsync(data.TargetUser);
+			if (targetUser == null) throw new ApplicationException("Target user not found");
+
+			authenticatedUser.AlterUserRole(targetUser, data.NewRole);
+		}
+
 		#endregion Methods
 	}
 }

@@ -16,6 +16,8 @@ namespace Repository.Interfaces
 
 		public Task ChangePassword(Guid userId, ChangePasswordData data);
 
+		public Task AlterUserRole(AlterUserRoleData data);
+
 		public Task Delete(Guid userId);
 	}
 }

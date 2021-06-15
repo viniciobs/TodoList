@@ -83,6 +83,16 @@ namespace Domains
 			Password = password;
 		}
 
+		public void AlterUserRole(User targetUser, UserRole role)
+		{
+			if (this.Role != UserRole.Admin) throw new InvalidOperationException("No rigths to alter roles");
+			if (targetUser == null) throw new ArgumentNullException(nameof(targetUser));
+			if (this == targetUser) throw new InvalidOperationException("Users can't alter its own role");
+			if (role == targetUser.Role) throw new ApplicationException("Given user has this role already");
+
+			targetUser.Role = role;
+		}
+
 		public Task SetTask(User targetUser, string taskDescription)
 		{
 			var task = Task.New(this, targetUser, taskDescription);
@@ -121,16 +131,6 @@ namespace Domains
 			if (!userCanComment) throw new SecurityException("User has no permission to comment this task");
 
 			task.AddComment(this, comment);
-		}
-
-		public void AlterUserRole(User targetUser, UserRole role)
-		{
-			if (this.Role != UserRole.Admin) throw new InvalidOperationException("No rigths to alter roles");
-			if (targetUser == null) throw new ArgumentNullException(nameof(targetUser));
-			if (this == targetUser) throw new InvalidOperationException("Users can't alter its own role");
-			if (role == targetUser.Role) throw new ApplicationException("Given user has this role already");
-
-			targetUser.Role = role;
 		}
 
 		#endregion Methods
