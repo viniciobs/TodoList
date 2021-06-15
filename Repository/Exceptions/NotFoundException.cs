@@ -16,8 +16,8 @@ namespace Repository.Exceptions
 			: base()
 		{ }
 
-		public NotFoundException(string exceptionMessage)
-			: base(exceptionMessage)
+		public NotFoundException(string message)
+			: base(message)
 		{ }
 
 		public NotFoundException(Type type)
@@ -26,8 +26,8 @@ namespace Repository.Exceptions
 			Type = type;
 		}
 
-		public NotFoundException(Type type, string exceptionMessage)
-			: base(exceptionMessage)
+		public NotFoundException(Type type, string message)
+			: base(message)
 		{
 			Type = type;
 		}
