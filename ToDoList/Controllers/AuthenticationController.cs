@@ -1,18 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Repository.DTOs.Users;
+using Repository.Exceptions;
+using Repository.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using DataAccess;
-using Repository.Interfaces;
-using Repository.DTOs.Users;
 using ToDoList.UI.Configurations;
-using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Http;
-using Repository.Exceptions;
 
 namespace ToDoList.UI.Controllers
 {
@@ -66,7 +64,7 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(AuthenticationData))]
 		public async Task<ActionResult<AuthenticationResult>> Login(AuthenticationData data)
 		{
-			if (data == null || string.IsNullOrEmpty(data.Login)  || string.IsNullOrEmpty(data.Password))
+			if (data == null || string.IsNullOrEmpty(data.Login) || string.IsNullOrEmpty(data.Password))
 				return BadRequest("Authentication data not received correctly");
 
 			var expireMinutes = 30;

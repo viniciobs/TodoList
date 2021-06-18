@@ -1,14 +1,14 @@
 ﻿using DataAccess;
-using Repository.DTOs.Users;
-using Repository.Interfaces;
-using System;
 using Domains;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Repository.DTOs.Users;
+using Repository.Exceptions;
+using Repository.Interfaces;
+using Repository.Util;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
-using Repository.Util;
-using Repository.Exceptions;
+using System.Threading.Tasks;
 
 namespace Repository
 {
@@ -26,6 +26,11 @@ namespace Repository
 
 		public async Task<CreateUserResult> Create(CreateUserData data)
 		{
+			if (data == null) throw new MissingArgumentsException(nameof(data));
+			if (string.IsNullOrEmpty(data.Name)) throw new MissingArgumentsException(nameof(data.Name));
+			if (string.IsNullOrEmpty(data.Login)) throw new MissingArgumentsException(nameof(data.Login));
+			if (string.IsNullOrEmpty(data.Password)) throw new MissingArgumentsException(nameof(data.Password));
+
 			var loginExists = await _db.User.AnyAsync(x => x.Login == data.Login);
 			if (loginExists) throw new ApplicationException("The given login already exists");
 
@@ -74,6 +79,10 @@ namespace Repository
 
 		public async Task<AuthenticationResult> Authenticate(AuthenticationData data)
 		{
+			if (data == null) throw new MissingArgumentsException(nameof(data));
+			if (string.IsNullOrEmpty(data.Login)) throw new MissingArgumentsException(nameof(data.Login));
+			if (string.IsNullOrEmpty(data.Password)) throw new MissingArgumentsException(nameof(data.Password));
+
 			var user = await _db.User.AsNoTracking().SingleOrDefaultAsync(x => x.Login == data.Login && x.Password == data.Password);
 			if (user == null) throw new NotFoundException(typeof(User), "Invalid credentials");
 
@@ -87,6 +96,10 @@ namespace Repository
 
 		public async Task ChangePassword(Guid userId, ChangePasswordData data)
 		{
+			if (data == null) throw new MissingArgumentsException(nameof(data));
+			if (string.IsNullOrEmpty(data.OldPassword)) throw new MissingArgumentsException(data.OldPassword);
+			if (string.IsNullOrEmpty(data.NewPassword)) throw new MissingArgumentsException(data.NewPassword);
+
 			var user = await _db.User.FirstOrDefaultAsync(x => x.Id == userId && x.Password == data.OldPassword);
 			if (user == null) throw new NotFoundException(typeof(User));
 
@@ -103,6 +116,8 @@ namespace Repository
 
 		public async Task AlterUserRole(AlterUserRoleData data)
 		{
+			if (data == null) throw new MissingArgumentsException(nameof(data));
+
 			var authenticatedUser = await _db.User.FindAsync(data.AuthenticatedUser);
 			if (authenticatedUser == null) throw new NotFoundException(typeof(User), "Authenticated user not found");
 			if (authenticatedUser.Role != UserRole.Admin) throw new InvalidOperationException("The authenticated user has no rights to alter user's role.");

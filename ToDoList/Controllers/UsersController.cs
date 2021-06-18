@@ -169,8 +169,6 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
 		public async Task<ActionResult<CreateUserResult>> New([FromBody] CreateUserData data)
 		{
-			if (data == null) throw new ArgumentNullException(nameof(data));
-
 			CreateUserResult result;
 
 			try
@@ -185,11 +183,9 @@ namespace ToDoList.UI.Controllers
 
 				return UnprocessableEntity(ModelState);
 			}
-			catch (ArgumentNullException argumentNullException)
+			catch (MissingArgumentsException missingArgumentsException)
 			{
-				ModelState.AddModelError(argumentNullException.ParamName, argumentNullException.Message);
-
-				return BadRequest(ModelState);
+				return BadRequest(missingArgumentsException);
 			}
 			catch (Exception exception)
 			{
@@ -200,6 +196,18 @@ namespace ToDoList.UI.Controllers
 
 			return Created(nameof(Get), result);
 		}
+
+		#region Documentation
+
+		/// <summary>
+		/// Alter a user role.
+		/// Only admin can alter users role.
+		/// A user can't change its own role.
+		/// </summary>
+		/// <param name="targetUserid">The identifier of the target user.</param>
+		/// <param name="targetUserNewRole">The new role of the target user.</param>
+
+		#endregion Documentation
 
 		[HttpPatch]
 		[Route("{targetUserid:Guid}/AlterRole")]
@@ -223,6 +231,10 @@ namespace ToDoList.UI.Controllers
 
 				await repo.AlterUserRole(data);
 				await repo.SaveChangesAsync();
+			}
+			catch (MissingArgumentsException missingArgumentsException)
+			{
+				return BadRequest(missingArgumentsException);
 			}
 			catch (NotFoundException notFoundException)
 			{
