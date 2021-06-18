@@ -64,10 +64,20 @@ namespace Tests
 			var adminUser2 = GenerateAdminUser();
 
 			// Assert
-			Assert.ThrowsException<RuleException>(() => randomUser.AlterUserRole(GenerateRandomUser(), UserRole.Admin));
-			Assert.ThrowsException<RuleException>(() => randomUser.AlterUserRole(randomUser, UserRole.Admin));
 			Assert.ThrowsException<RuleException>(() => adminUser.AlterUserRole(randomUser, UserRole.Normal));
 			Assert.ThrowsException<RuleException>(() => adminUser2.AlterUserRole(adminUser, UserRole.Admin));
+		}
+
+		[TestMethod]
+		public void TestUserSetRoleThrowPermissionException()
+		{
+			// Act
+			var randomUser = GenerateRandomUser();
+			var adminUser = GenerateAdminUser();
+
+			// Assert
+			Assert.ThrowsException<PermissionException>(() => randomUser.AlterUserRole(GenerateRandomUser(), UserRole.Admin));
+			Assert.ThrowsException<PermissionException>(() => randomUser.AlterUserRole(randomUser, UserRole.Admin));
 		}
 
 		[TestMethod]

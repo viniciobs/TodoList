@@ -120,7 +120,7 @@ namespace Repository
 
 			var authenticatedUser = await _db.User.FindAsync(data.AuthenticatedUser);
 			if (authenticatedUser == null) throw new NotFoundException(typeof(User), "Authenticated user not found");
-			if (authenticatedUser.Role != UserRole.Admin) throw new InvalidOperationException("The authenticated user has no rights to alter user's role.");
+			if (authenticatedUser.Role != UserRole.Admin) throw new PermissionException("The authenticated user has no rights to alter user's role.");
 
 			var targetUser = await _db.User.FindAsync(data.TargetUser);
 			if (targetUser == null) throw new NotFoundException(typeof(User), "Target user not found");

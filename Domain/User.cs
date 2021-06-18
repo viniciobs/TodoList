@@ -86,7 +86,7 @@ namespace Domains
 
 		public void AlterUserRole(User targetUser, UserRole role)
 		{
-			if (this.Role != UserRole.Admin) throw new RuleException("No rigths to alter roles");
+			if (this.Role != UserRole.Admin) throw new PermissionException("No rigths to alter roles");
 			if (targetUser == null) throw new MissingArgumentsException(nameof(targetUser));
 			if (this == targetUser) throw new RuleException("Users can't alter its own role");
 			if (role == targetUser.Role) throw new RuleException("Given user has this role already");

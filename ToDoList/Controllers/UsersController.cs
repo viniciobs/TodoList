@@ -124,16 +124,16 @@ namespace ToDoList.UI.Controllers
 			if (string.IsNullOrEmpty(data.NewPassword)) return BadRequest(nameof(data.NewPassword));
 
 			if (id != authenticatedUser.Id)
-			{
-				ModelState.AddModelError("User", "The given identifier mismatch the authenticated user");
-
-				return Conflict(ModelState);
-			}
+				return Conflict(new Exception("The given identifier mismatch the authenticated user"));
 
 			try
 			{
 				await repo.ChangePassword(id, data);
 				await repo.SaveChangesAsync();
+			}
+			catch (MissingArgumentsException missingArgumentsException)
+			{
+				return BadRequest(missingArgumentsException);
 			}
 			catch (NotFoundException notFoundException)
 			{
@@ -141,9 +141,7 @@ namespace ToDoList.UI.Controllers
 			}
 			catch (Exception exception)
 			{
-				ModelState.AddModelError("User", exception.Message);
-
-				return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}
 
 			return NoContent();
@@ -187,9 +185,7 @@ namespace ToDoList.UI.Controllers
 			}
 			catch (Exception exception)
 			{
-				ModelState.AddModelError(string.Empty, exception.Message);
-
-				return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}
 
 			return Created(nameof(Get), result);
@@ -214,6 +210,7 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<IActionResult> AlterUserRole(Guid targetUserid, [FromBody] UserRole targetUserNewRole)
@@ -238,11 +235,13 @@ namespace ToDoList.UI.Controllers
 			{
 				return NotFound(notFoundException);
 			}
-			catch (InvalidOperationException operationException)
+			catch (PermissionException permissionException)
 			{
-				ModelState.AddModelError(string.Empty, operationException.Message);
-
-				return StatusCode(StatusCodes.Status403Forbidden, ModelState);
+				return StatusCode(StatusCodes.Status403Forbidden, permissionException);
+			}
+			catch (RuleException ruleException)
+			{
+				return Conflict(ruleException);
 			}
 			catch (Exception exception)
 			{

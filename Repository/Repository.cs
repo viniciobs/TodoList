@@ -1,5 +1,5 @@
 ﻿using DataAccess;
-using System;
+using Domains.Exceptions;
 using System.Threading.Tasks;
 
 namespace Repository
@@ -16,7 +16,7 @@ namespace Repository
 
 		public Repository(ApplicationContext applicationContext)
 		{
-			if (applicationContext == null) throw new ArgumentNullException(nameof(applicationContext));
+			if (applicationContext == null) throw new MissingArgumentsException(nameof(applicationContext));
 
 			_db = applicationContext;
 		}
