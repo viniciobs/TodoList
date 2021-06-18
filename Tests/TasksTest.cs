@@ -1,4 +1,5 @@
-﻿using Domains.Tests;
+﻿using Domains.Exceptions;
+using Domains.Tests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Security;
@@ -15,9 +16,9 @@ namespace Tests
 			var user = GenerateRandomUser();
 
 			// Act and assert
-			Assert.ThrowsException<ArgumentNullException>(() => user.SetTask(user, NullTaskDescription));
-			Assert.ThrowsException<ArgumentNullException>(() => user.SetTask(user, EmptyTaskDescription));
-			Assert.ThrowsException<ArgumentNullException>(() => user.SetTask(NullUser, ValidTaskDescription));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.SetTask(user, NullTaskDescription));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.SetTask(user, EmptyTaskDescription));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.SetTask(NullUser, ValidTaskDescription));
 		}
 
 		[TestMethod]
@@ -109,8 +110,8 @@ namespace Tests
 			var user = GenerateRandomUser();
 
 			// Act and assert
-			Assert.ThrowsException<ArgumentNullException>(() => user.FinishTask(NullTask));
-			Assert.ThrowsException<ArgumentNullException>(() => user.FinishTask(NullTask));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.FinishTask(NullTask));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.FinishTask(NullTask));
 		}
 
 		[TestMethod]
@@ -142,7 +143,7 @@ namespace Tests
 		public void TestReopenTaskThrowsNullException()
 		{
 			//Act and assert
-			Assert.ThrowsException<ArgumentNullException>(() => GenerateRandomUser().ReopenTask(NullTask));
+			Assert.ThrowsException<MissingArgumentsException>(() => GenerateRandomUser().ReopenTask(NullTask));
 		}
 
 		[TestMethod]

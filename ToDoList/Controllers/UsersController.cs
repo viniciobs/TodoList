@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Domains;
+using Domains.Exceptions;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using ToDoList.UI.Controllers.Base;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
-using Domains;
-using Repository.Exceptions;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using ToDoList.UI.Controllers.Base;
 
 namespace ToDoList.UI.Controllers
 {
@@ -177,11 +177,9 @@ namespace ToDoList.UI.Controllers
 
 				await repo.SaveChangesAsync();
 			}
-			catch (ApplicationException applicationException)
+			catch (RuleException ruleException)
 			{
-				ModelState.AddModelError(nameof(CreateUserData), applicationException.Message);
-
-				return UnprocessableEntity(ModelState);
+				return UnprocessableEntity(ruleException);
 			}
 			catch (MissingArgumentsException missingArgumentsException)
 			{

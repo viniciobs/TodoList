@@ -1,8 +1,8 @@
 ﻿using DataAccess;
 using Domains;
+using Domains.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Repository.DTOs.Users;
-using Repository.Exceptions;
 using Repository.Interfaces;
 using Repository.Util;
 using System;
@@ -32,7 +32,7 @@ namespace Repository
 			if (string.IsNullOrEmpty(data.Password)) throw new MissingArgumentsException(nameof(data.Password));
 
 			var loginExists = await _db.User.AnyAsync(x => x.Login == data.Login);
-			if (loginExists) throw new ApplicationException("The given login already exists");
+			if (loginExists) throw new RuleException("The given login already exists");
 
 			var user = User.New(data.Name, data.Login);
 			user.SetPassword(data.Password);

@@ -1,8 +1,8 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Security;
+﻿using Domains.Exceptions;
 using Domains.Tests;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using System.Security;
 
 namespace Tests
 {
@@ -17,9 +17,9 @@ namespace Tests
 			var task = user.SetTask(GenerateRandomUser(), ValidTaskDescription);
 
 			// Act and assert
-			Assert.ThrowsException<ArgumentNullException>(() => user.AddComment(NullTask, ValidComment));
-			Assert.ThrowsException<ArgumentNullException>(() => user.AddComment(task, NullComment));
-			Assert.ThrowsException<ArgumentNullException>(() => user.AddComment(task, EmptyComment));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.AddComment(NullTask, ValidComment));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.AddComment(task, NullComment));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.AddComment(task, EmptyComment));
 		}
 
 		[TestMethod]
@@ -37,8 +37,8 @@ namespace Tests
 			var task = user.SetTask(GenerateRandomUser(), ValidTaskDescription);
 
 			// Act and assert
-			Assert.ThrowsException<ArgumentNullException>(() => user.AddComment(task, NullComment));
-			Assert.ThrowsException<ArgumentNullException>(() => user.AddComment(task, EmptyComment));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.AddComment(task, NullComment));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.AddComment(task, EmptyComment));
 		}
 
 		[TestMethod]

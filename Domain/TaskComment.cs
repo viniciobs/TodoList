@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domains.Exceptions;
+using System;
 using Task = Domains.User.Task;
 
 namespace Domains
@@ -28,9 +29,9 @@ namespace Domains
 
 				private TaskComment(Task task, User creator, string text)
 				{
-					if (task == null) throw new ArgumentNullException(nameof(task));
-					if (creator == null) throw new ArgumentNullException(nameof(creator));
-					if (string.IsNullOrEmpty(text)) throw new ArgumentNullException(nameof(text));
+					if (task == null) throw new MissingArgumentsException(nameof(task));
+					if (creator == null) throw new MissingArgumentsException(nameof(creator));
+					if (string.IsNullOrEmpty(text)) throw new MissingArgumentsException(nameof(text));
 
 					CreatedBy = creator;
 					CreatedByUserId = creator.Id;

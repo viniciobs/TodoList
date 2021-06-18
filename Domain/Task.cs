@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domains.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -30,9 +31,9 @@ namespace Domains
 
 			private Task(User creator, User target, string description)
 			{
-				if (creator == null) throw new ArgumentNullException(nameof(creator));
-				if (target == null) throw new ArgumentNullException(nameof(target));
-				if (string.IsNullOrEmpty(description)) throw new ArgumentNullException(nameof(description));
+				if (creator == null) throw new MissingArgumentsException(nameof(creator));
+				if (target == null) throw new MissingArgumentsException(nameof(target));
+				if (string.IsNullOrEmpty(description)) throw new MissingArgumentsException(nameof(description));
 
 				CreatorUser = creator;
 				CreatorUserId = creator.Id;

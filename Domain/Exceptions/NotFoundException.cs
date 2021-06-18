@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Repository.Exceptions
+namespace Domains.Exceptions
 {
 	public class NotFoundException : Exception
 	{

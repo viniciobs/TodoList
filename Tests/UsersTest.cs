@@ -1,7 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Domains;
-using System;
+﻿using Domains;
+using Domains.Exceptions;
 using Domains.Tests;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace Tests
 {
@@ -12,16 +13,16 @@ namespace Tests
 		public void TestUserCreationThrowExceptionNullAndEmptyArguments()
 		{
 			// Act and assert
-			Assert.ThrowsException<ArgumentNullException>(() => User.New(NullName, NullLogin));
-			Assert.ThrowsException<ArgumentNullException>(() => User.New(NullName, EmptyLogin));
-			Assert.ThrowsException<ArgumentNullException>(() => User.New(NullName, ValidLogin));
+			Assert.ThrowsException<MissingArgumentsException>(() => User.New(NullName, NullLogin));
+			Assert.ThrowsException<MissingArgumentsException>(() => User.New(NullName, EmptyLogin));
+			Assert.ThrowsException<MissingArgumentsException>(() => User.New(NullName, ValidLogin));
 
-			Assert.ThrowsException<ArgumentNullException>(() => User.New(EmptyName, NullLogin));
-			Assert.ThrowsException<ArgumentNullException>(() => User.New(EmptyName, EmptyLogin));
-			Assert.ThrowsException<ArgumentNullException>(() => User.New(EmptyName, ValidLogin));
+			Assert.ThrowsException<MissingArgumentsException>(() => User.New(EmptyName, NullLogin));
+			Assert.ThrowsException<MissingArgumentsException>(() => User.New(EmptyName, EmptyLogin));
+			Assert.ThrowsException<MissingArgumentsException>(() => User.New(EmptyName, ValidLogin));
 
-			Assert.ThrowsException<ArgumentNullException>(() => User.New(ValidName, NullLogin));
-			Assert.ThrowsException<ArgumentNullException>(() => User.New(ValidName, EmptyLogin));
+			Assert.ThrowsException<MissingArgumentsException>(() => User.New(ValidName, NullLogin));
+			Assert.ThrowsException<MissingArgumentsException>(() => User.New(ValidName, EmptyLogin));
 		}
 
 		[TestMethod]
@@ -38,8 +39,8 @@ namespace Tests
 		public void TestUserSetPasswordThrowExceptionNullAndEmptyArguments()
 		{
 			// Act and assert
-			Assert.ThrowsException<ArgumentNullException>(() => GenerateRandomUser().SetPassword(NullPassword));
-			Assert.ThrowsException<ArgumentNullException>(() => GenerateRandomUser().SetPassword(EmptyPassword));
+			Assert.ThrowsException<MissingArgumentsException>(() => GenerateRandomUser().SetPassword(NullPassword));
+			Assert.ThrowsException<MissingArgumentsException>(() => GenerateRandomUser().SetPassword(EmptyPassword));
 		}
 
 		[TestMethod]
@@ -65,10 +66,10 @@ namespace Tests
 		}
 
 		[TestMethod]
-		public void TestUserSetRoleThrowArgumentNullException()
+		public void TestUserSetRoleThrowMissingArgumentsException()
 		{
 			// Act and assert
-			Assert.ThrowsException<ArgumentNullException>(() => GenerateAdminUser().AlterUserRole(NullUser, UserRole.Admin));
+			Assert.ThrowsException<MissingArgumentsException>(() => GenerateAdminUser().AlterUserRole(NullUser, UserRole.Admin));
 		}
 
 		[TestMethod]

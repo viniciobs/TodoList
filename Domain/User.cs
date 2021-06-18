@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domains.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security;
@@ -45,8 +46,8 @@ namespace Domains
 
 		public static User New(string name, string login)
 		{
-			if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
-			if (string.IsNullOrEmpty(login)) throw new ArgumentNullException(nameof(login));
+			if (string.IsNullOrEmpty(name)) throw new MissingArgumentsException(nameof(name));
+			if (string.IsNullOrEmpty(login)) throw new MissingArgumentsException(nameof(login));
 
 			var user = new User()
 			{
@@ -78,7 +79,7 @@ namespace Domains
 
 		public void SetPassword(string password)
 		{
-			if (string.IsNullOrEmpty(password)) throw new ArgumentNullException(nameof(password));
+			if (string.IsNullOrEmpty(password)) throw new MissingArgumentsException(nameof(password));
 
 			Password = password;
 		}
@@ -86,7 +87,7 @@ namespace Domains
 		public void AlterUserRole(User targetUser, UserRole role)
 		{
 			if (this.Role != UserRole.Admin) throw new InvalidOperationException("No rigths to alter roles");
-			if (targetUser == null) throw new ArgumentNullException(nameof(targetUser));
+			if (targetUser == null) throw new MissingArgumentsException(nameof(targetUser));
 			if (this == targetUser) throw new InvalidOperationException("Users can't alter its own role");
 			if (role == targetUser.Role) throw new ApplicationException("Given user has this role already");
 
@@ -105,7 +106,7 @@ namespace Domains
 
 		public void FinishTask(Task taskToFinish)
 		{
-			if (taskToFinish == null) throw new ArgumentNullException(nameof(taskToFinish));
+			if (taskToFinish == null) throw new MissingArgumentsException(nameof(taskToFinish));
 
 			var userCanFinish = taskToFinish.CreatorUser == this || taskToFinish.TargetUser == this;
 			if (!userCanFinish) throw new SecurityException("User has no permission to finish this task");
@@ -115,7 +116,7 @@ namespace Domains
 
 		public void ReopenTask(Task taskToReopen)
 		{
-			if (taskToReopen == null) throw new ArgumentNullException(nameof(taskToReopen));
+			if (taskToReopen == null) throw new MissingArgumentsException(nameof(taskToReopen));
 
 			var userCanReopen = taskToReopen.CreatorUser == this || taskToReopen.TargetUser == this;
 			if (!userCanReopen) throw new SecurityException("User has no permission to reopen this task");
@@ -125,7 +126,7 @@ namespace Domains
 
 		public void AddComment(Task task, string comment)
 		{
-			if (task == null) throw new ArgumentNullException(nameof(task));
+			if (task == null) throw new MissingArgumentsException(nameof(task));
 
 			var userCanComment = task.CreatorUser == this || task.TargetUser == this;
 			if (!userCanComment) throw new SecurityException("User has no permission to comment this task");

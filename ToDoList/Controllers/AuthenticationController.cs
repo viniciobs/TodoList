@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Repository.DTOs.Users;
-using Repository.Exceptions;
+using Domains.Exceptions;
 using Repository.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;
