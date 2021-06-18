@@ -86,10 +86,10 @@ namespace Domains
 
 		public void AlterUserRole(User targetUser, UserRole role)
 		{
-			if (this.Role != UserRole.Admin) throw new InvalidOperationException("No rigths to alter roles");
+			if (this.Role != UserRole.Admin) throw new RuleException("No rigths to alter roles");
 			if (targetUser == null) throw new MissingArgumentsException(nameof(targetUser));
-			if (this == targetUser) throw new InvalidOperationException("Users can't alter its own role");
-			if (role == targetUser.Role) throw new ApplicationException("Given user has this role already");
+			if (this == targetUser) throw new RuleException("Users can't alter its own role");
+			if (role == targetUser.Role) throw new RuleException("Given user has this role already");
 
 			targetUser.Role = role;
 		}
@@ -109,7 +109,7 @@ namespace Domains
 			if (taskToFinish == null) throw new MissingArgumentsException(nameof(taskToFinish));
 
 			var userCanFinish = taskToFinish.CreatorUser == this || taskToFinish.TargetUser == this;
-			if (!userCanFinish) throw new SecurityException("User has no permission to finish this task");
+			if (!userCanFinish) throw new PermissionException("User has no permission to finish this task");
 
 			taskToFinish.Finish();
 		}
@@ -119,7 +119,7 @@ namespace Domains
 			if (taskToReopen == null) throw new MissingArgumentsException(nameof(taskToReopen));
 
 			var userCanReopen = taskToReopen.CreatorUser == this || taskToReopen.TargetUser == this;
-			if (!userCanReopen) throw new SecurityException("User has no permission to reopen this task");
+			if (!userCanReopen) throw new PermissionException("User has no permission to reopen this task");
 
 			taskToReopen.Reopen();
 		}
@@ -129,7 +129,7 @@ namespace Domains
 			if (task == null) throw new MissingArgumentsException(nameof(task));
 
 			var userCanComment = task.CreatorUser == this || task.TargetUser == this;
-			if (!userCanComment) throw new SecurityException("User has no permission to comment this task");
+			if (!userCanComment) throw new PermissionException("User has no permission to comment this task");
 
 			task.AddComment(this, comment);
 		}

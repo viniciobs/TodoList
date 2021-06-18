@@ -10,7 +10,7 @@ namespace Tests
 	public class TaskCommentsTest : TestBase
 	{
 		[TestMethod]
-		public void TestAddTaskThrowNullException()
+		public void TestAddTaskThrowMissingArgumentsException()
 		{
 			// Arrange
 			var user = GenerateRandomUser();
@@ -23,14 +23,14 @@ namespace Tests
 		}
 
 		[TestMethod]
-		public void TestAddCommentThrowSecurityException()
+		public void TestAddCommentThrowPermissionException()
 		{
 			// Act and assert
-			Assert.ThrowsException<SecurityException>(() => GenerateRandomUser().AddComment(GenerateRandomTask(), ValidComment));
+			Assert.ThrowsException<PermissionException>(() => GenerateRandomUser().AddComment(GenerateRandomTask(), ValidComment));
 		}
 
 		[TestMethod]
-		public void TestAddCommentThrowNullOrEmptyException()
+		public void TestAddCommentThrowMissingArgumentsException()
 		{
 			// Arrange
 			var user = GenerateRandomUser();

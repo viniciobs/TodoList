@@ -10,7 +10,7 @@ namespace Tests
 	public class TasksTest : TestBase
 	{
 		[TestMethod]
-		public void TestSetTaskThrowsNullException()
+		public void TestSetTaskThrowsMissingArgumentsException()
 		{
 			// Assert
 			var user = GenerateRandomUser();
@@ -92,7 +92,7 @@ namespace Tests
 		}
 
 		[TestMethod]
-		public void TestFinishTaskThrowInvalidOperationException()
+		public void TestFinishTaskThrowRuleException()
 		{
 			// Arrange
 			var user = GenerateRandomUser();
@@ -100,11 +100,11 @@ namespace Tests
 			user.FinishTask(task);
 
 			// Act and assert
-			Assert.ThrowsException<InvalidOperationException>(() => user.FinishTask(task));
+			Assert.ThrowsException<RuleException>(() => user.FinishTask(task));
 		}
 
 		[TestMethod]
-		public void TestFinishTaskTrhowNullException()
+		public void TestFinishTaskTrhowMissingArgumentsException()
 		{
 			// Assert
 			var user = GenerateRandomUser();
@@ -115,10 +115,10 @@ namespace Tests
 		}
 
 		[TestMethod]
-		public void TestFinishTaskThrowSecurityException()
+		public void TestFinishTaskThrowPermissionException()
 		{
 			//Act and assert
-			Assert.ThrowsException<SecurityException>(() => GenerateRandomUser().FinishTask(GenerateRandomTask()));
+			Assert.ThrowsException<PermissionException>(() => GenerateRandomUser().FinishTask(GenerateRandomTask()));
 		}
 
 		[TestMethod]
@@ -140,14 +140,14 @@ namespace Tests
 		}
 
 		[TestMethod]
-		public void TestReopenTaskThrowsNullException()
+		public void TestReopenTaskThrowsMissingArgumentsException()
 		{
 			//Act and assert
 			Assert.ThrowsException<MissingArgumentsException>(() => GenerateRandomUser().ReopenTask(NullTask));
 		}
 
 		[TestMethod]
-		public void TestReopenTaskThrowInvalidOperationException()
+		public void TestReopenTaskThrowRuleException()
 		{
 			// Arrange
 			var task = GenerateRandomTask();
@@ -155,12 +155,12 @@ namespace Tests
 			var targetUser = task.TargetUser;
 
 			//Act and assert
-			Assert.ThrowsException<InvalidOperationException>(() => creatorUser.ReopenTask(task));
-			Assert.ThrowsException<InvalidOperationException>(() => targetUser.ReopenTask(task));
+			Assert.ThrowsException<RuleException>(() => creatorUser.ReopenTask(task));
+			Assert.ThrowsException<RuleException>(() => targetUser.ReopenTask(task));
 		}
 
 		[TestMethod]
-		public void TestReopenTaskThrowSecurityException()
+		public void TestReopenTaskThrowPermissionException()
 		{
 			// Arrange
 			var user = GenerateRandomUser();
@@ -168,7 +168,7 @@ namespace Tests
 			user.FinishTask(task);
 
 			//Act and assert
-			Assert.ThrowsException<SecurityException>(() => GenerateRandomUser().ReopenTask(task));
+			Assert.ThrowsException<PermissionException>(() => GenerateRandomUser().ReopenTask(task));
 		}
 
 		public void TestReopenTaskOk()

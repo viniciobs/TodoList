@@ -55,14 +55,14 @@ namespace Domains
 
 			public void Finish()
 			{
-				if (CompletedAt != null) throw new InvalidOperationException("Task is finished already");
+				if (CompletedAt != null) throw new RuleException("Task is finished already");
 
 				CompletedAt = DateTime.UtcNow;
 			}
 
 			public void Reopen()
 			{
-				if (CompletedAt == null) throw new InvalidOperationException("Task is not finished");
+				if (CompletedAt == null) throw new RuleException("Task is not finished");
 
 				CompletedAt = null;
 			}

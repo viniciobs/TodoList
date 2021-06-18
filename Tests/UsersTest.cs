@@ -10,7 +10,7 @@ namespace Tests
 	public class UsersTest : TestBase
 	{
 		[TestMethod]
-		public void TestUserCreationThrowExceptionNullAndEmptyArguments()
+		public void TestUserCreationThrowMissingArgumentsException()
 		{
 			// Act and assert
 			Assert.ThrowsException<MissingArgumentsException>(() => User.New(NullName, NullLogin));
@@ -36,7 +36,7 @@ namespace Tests
 		}
 
 		[TestMethod]
-		public void TestUserSetPasswordThrowExceptionNullAndEmptyArguments()
+		public void TestUserSetPasswordThrowMissingArgumentsException()
 		{
 			// Act and assert
 			Assert.ThrowsException<MissingArgumentsException>(() => GenerateRandomUser().SetPassword(NullPassword));
@@ -55,14 +55,19 @@ namespace Tests
 		}
 
 		[TestMethod]
-		public void TestUserSetRoleThrowInvalidOperationException()
+		public void TestUserSetRoleThrowRuleException()
 		{
 			// Act
 			var randomUser = GenerateRandomUser();
+			var adminUser = GenerateAdminUser();
+
+			var adminUser2 = GenerateAdminUser();
 
 			// Assert
-			Assert.ThrowsException<InvalidOperationException>(() => randomUser.AlterUserRole(GenerateRandomUser(), UserRole.Admin));
-			Assert.ThrowsException<InvalidOperationException>(() => randomUser.AlterUserRole(randomUser, UserRole.Admin));
+			Assert.ThrowsException<RuleException>(() => randomUser.AlterUserRole(GenerateRandomUser(), UserRole.Admin));
+			Assert.ThrowsException<RuleException>(() => randomUser.AlterUserRole(randomUser, UserRole.Admin));
+			Assert.ThrowsException<RuleException>(() => adminUser.AlterUserRole(randomUser, UserRole.Normal));
+			Assert.ThrowsException<RuleException>(() => adminUser2.AlterUserRole(adminUser, UserRole.Admin));
 		}
 
 		[TestMethod]
@@ -70,20 +75,6 @@ namespace Tests
 		{
 			// Act and assert
 			Assert.ThrowsException<MissingArgumentsException>(() => GenerateAdminUser().AlterUserRole(NullUser, UserRole.Admin));
-		}
-
-		[TestMethod]
-		public void TestUserSetRoleThrowApplicationException()
-		{
-			// Act
-			var adminUser = GenerateAdminUser();
-			var randomUser = GenerateRandomUser();
-
-			var adminUser2 = GenerateAdminUser();
-
-			// Assert
-			Assert.ThrowsException<ApplicationException>(() => adminUser.AlterUserRole(randomUser, UserRole.Normal));
-			Assert.ThrowsException<ApplicationException>(() => adminUser2.AlterUserRole(adminUser, UserRole.Admin));
 		}
 
 		[TestMethod]
