@@ -1,3 +1,10 @@
+# In progress...
+I am currently studying and developing this API ;)
+<br />
+.<br />
+.<br />
+.<br />
+<br />
 # TodoList
 
 This project is a web API developed with ASP.Net Core 3.1, Entity Framework, SQL Server and [JWT](https://jwt.io/).
@@ -25,4 +32,4 @@ All requests, except user creation, needs authentication and must send a token w
   
 <br />    
 This is my very first project with .NET CORE and Entity Framework.  
-Any suggestion? Feel free to contact me.   
+Any suggestion? Feel free to contact me.
