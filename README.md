@@ -1,3 +1,6 @@
+# In progress...
+I am currently studying and developing this API ;)
+
 # TodoList
 
 This project is a web API developed with ASP.Net Core 3.1, Entity Framework, SQL Server and [JWT](https://jwt.io/).
