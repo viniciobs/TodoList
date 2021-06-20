@@ -30,7 +30,8 @@ All requests, except user creation, needs authentication and must send a token w
     
     > update-database   
   
-<br />     
-***
+     
+***    
+<br />
 This is my very first project with .NET CORE and Entity Framework.  
 Any suggestion? Feel free to contact me.
