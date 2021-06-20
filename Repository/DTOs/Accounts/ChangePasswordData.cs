@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Repository.DTOs.Users
+﻿namespace Repository.DTOs.Accounts
 {
 	public class ChangePasswordData
 	{

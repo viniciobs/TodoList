@@ -1,12 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Domains.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
-using System;
-using System.Linq;
-using System.Security.Authentication;
-using System.Security.Claims;
 
 namespace ToDoList.UI.Controllers.Base
 {
@@ -28,15 +25,8 @@ namespace ToDoList.UI.Controllers.Base
 		{
 			this.repo = repo;
 
-			var canValidateAuthentication = httpContextAccessor.HttpContext.User.Claims.Any();
-			if (!canValidateAuthentication) return;
-
-			var claim = httpContextAccessor.HttpContext.User.Claims.First(x => x.Type == ClaimTypes.Sid);
-			var userId = new Guid(claim.Value);
-
-			authenticatedUser = repo.Get(userId).Result;
-
-			if (authenticatedUser == null) throw new InvalidCredentialException();
+			authenticatedUser = httpContextAccessor.GetAuthenticatedUser(repo);
+			if (authenticatedUser == null) throw new PermissionException();
 		}
 
 		#endregion Constructor

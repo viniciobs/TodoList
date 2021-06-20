@@ -48,6 +48,7 @@ namespace ToDoList.UI
 			services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters.Add(new StringEnumConverter()));
 			services.AddHttpContextAccessor();
 
+			services.AddScoped<IAccountRepository, AccountRepository>();
 			services.AddScoped<IUserRepository, UserRepository>();
 
 			services.AddJwtAuthentication(configuration.GetSection("Authentication"));
@@ -64,7 +65,7 @@ namespace ToDoList.UI
 			app.UseSwagger();
 			app.UseSwaggerUI(options =>
 			{
-				options.SwaggerEndpoint("/swagger/Authentication/swagger.json", "Authentication");
+				options.SwaggerEndpoint("/swagger/Accounts/swagger.json", "Accounts");
 				options.SwaggerEndpoint("/swagger/Users/swagger.json", "Users");
 			});
 

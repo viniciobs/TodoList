@@ -1,6 +1,6 @@
-﻿namespace Repository.DTOs.Users
+﻿namespace Repository.DTOs.Accounts
 {
-	public class CreateUserData
+	public class CreateAccountData
 	{
 		public string Name { get; set; }
 		public string Login { get; set; }

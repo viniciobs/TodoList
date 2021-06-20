@@ -1,4 +1,4 @@
-﻿namespace Repository.DTOs.Users
+﻿namespace Repository.DTOs.Accounts
 {
 	public class AuthenticationData
 	{
