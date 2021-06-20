@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ToDoList.UI.Configurations.ServicesConfigurations;
 using Newtonsoft.Json.Converters;
-using Repository.Interfaces;
 using Repository;
-using ToDoList.UI.Configurations;
+using Repository.Interfaces;
+using System.Linq;
+using ToDoList.UI.Configurations.ServicesConfigurations;
 
 namespace ToDoList.UI
 {
@@ -37,6 +38,13 @@ namespace ToDoList.UI
 				options => options.UseSqlServer(configuration.GetConnectionString("ToDoListDB"))
 			);
 
+			services.AddResponseCompression(options =>
+			{
+				options.EnableForHttps = true;
+				options.Providers.Add<GzipCompressionProvider>();
+				options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json" });
+			});
+
 			services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters.Add(new StringEnumConverter()));
 			services.AddHttpContextAccessor();
 
@@ -60,6 +68,8 @@ namespace ToDoList.UI
 			app.UseRouting();
 			app.UseAuthentication();
 			app.UseAuthorization();
+
+			app.UseResponseCompression();
 
 			app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 		}
