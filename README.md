@@ -29,8 +29,7 @@ All requests, except user creation, needs authentication and must send a token w
     Now that the connection string is properly defined, open the command line tool, access the solution folder and run the database update
     
     > update-database   
-  
-<br />         
+           
 ***    
 This is my very first project with .NET CORE and Entity Framework.  
 Any suggestion? Feel free to contact me.
