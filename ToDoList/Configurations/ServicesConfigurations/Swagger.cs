@@ -19,7 +19,7 @@ namespace ToDoList.UI.Configurations.ServicesConfigurations
 				{
 					Version = "1",
 					Title = "Accounts API",
-					Description = "The API provides accounts creation and authentication",
+					Description = "The API provides accounts management",
 					Contact = new OpenApiContact
 					{
 						Name = "Vinício",
