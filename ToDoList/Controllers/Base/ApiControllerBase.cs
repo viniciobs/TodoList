@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
-using System.Security.Claims;
+using System;
+using System.Linq;
 using System.Security.Authentication;
+using System.Security.Claims;
 
 namespace ToDoList.UI.Controllers.Base
 {

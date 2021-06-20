@@ -53,13 +53,13 @@ namespace ToDoList.UI.Controllers
 		{
 			try
 			{
-				return await repo.Get(name: name, login: login);
+				var users = await repo.Get(name: name, login: login);
+
+				return Ok(users);
 			}
 			catch (Exception exception)
 			{
-				ModelState.AddModelError(string.Empty, exception.Message);
-
-				return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}
 		}
 
@@ -97,7 +97,7 @@ namespace ToDoList.UI.Controllers
 				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}
 
-			return user;
+			return Ok(user);
 		}
 
 		#region Documentation
@@ -115,6 +115,8 @@ namespace ToDoList.UI.Controllers
 		[ProducesDefaultResponseType]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status409Conflict)]
 		[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(UserResult))]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<IActionResult> ChangePassword(Guid id, ChangePasswordData data)
@@ -245,9 +247,7 @@ namespace ToDoList.UI.Controllers
 			}
 			catch (Exception exception)
 			{
-				ModelState.AddModelError(string.Empty, exception.Message);
-
-				return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}
 
 			return NoContent();
@@ -285,9 +285,7 @@ namespace ToDoList.UI.Controllers
 			}
 			catch (Exception exception)
 			{
-				ModelState.AddModelError(string.Empty, exception.Message);
-
-				return StatusCode(StatusCodes.Status500InternalServerError, ModelState);
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}
 			//var strategy = context.Database.CreateExecutionStrategy();
 

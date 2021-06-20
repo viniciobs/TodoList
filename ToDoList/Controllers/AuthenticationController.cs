@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Domains.Exceptions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Repository.DTOs.Users;
-using Domains.Exceptions;
 using Repository.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;
@@ -62,6 +62,7 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(AuthenticationData))]
 		[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(AuthenticationData))]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<ActionResult<AuthenticationResult>> Login(AuthenticationData data)
 		{
 			if (data == null || string.IsNullOrEmpty(data.Login) || string.IsNullOrEmpty(data.Password))
@@ -78,33 +79,44 @@ namespace ToDoList.UI.Controllers
 			{
 				authenticationResult = await repo.Authenticate(data);
 			}
+			catch (MissingArgumentsException missingArgumentException)
+			{
+				return BadRequest(missingArgumentException);
+			}
 			catch (NotFoundException notFoundException)
 			{
 				return NotFound(notFoundException);
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception.Message);
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}
 
-			var tokenHandler = new JwtSecurityTokenHandler();
-			var key = Encoding.UTF8.GetBytes(authentication.Secret);
-
-			var tokenDescriptor = new SecurityTokenDescriptor
+			try
 			{
-				Subject = new ClaimsIdentity(new Claim[]
+				var tokenHandler = new JwtSecurityTokenHandler();
+				var key = Encoding.UTF8.GetBytes(authentication.Secret);
+
+				var tokenDescriptor = new SecurityTokenDescriptor
 				{
+					Subject = new ClaimsIdentity(new Claim[]
+					{
 					new Claim(ClaimTypes.Sid, authenticationResult.UserId.ToString()),
 					new Claim(ClaimTypes.Role, authenticationResult.Role.ToString())
-				}),
-				Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
-				SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-			};
+					}),
+					Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
+					SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+				};
 
-			var token = tokenHandler.CreateToken(tokenDescriptor);
-			authenticationResult.Token = tokenHandler.WriteToken(token);
+				var token = tokenHandler.CreateToken(tokenDescriptor);
+				authenticationResult.Token = tokenHandler.WriteToken(token);
 
-			return Ok(authenticationResult);
+				return Ok(authenticationResult);
+			}
+			catch (Exception exception)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+			}
 		}
 
 		#endregion Methods
