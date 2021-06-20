@@ -15,10 +15,23 @@ namespace ToDoList.UI.Configurations.ServicesConfigurations
 
 			services.AddSwaggerGen(x =>
 			{
+				x.SwaggerDoc("Authentication", new OpenApiInfo
+				{
+					Version = "1",
+					Title = "Authentication API",
+					Description = "The API provides users authentication",
+					Contact = new OpenApiContact
+					{
+						Name = "Vinício",
+						Email = "vinicio.barreto.santos@gmail.com",
+						Url = new Uri("https://www.linkedin.com/in/vinicio-barreto-santos/")
+					}
+				});
+
 				x.SwaggerDoc("Users", new OpenApiInfo
 				{
 					Version = "1",
-					Title = "USers API",
+					Title = "Users API",
 					Description = "The API allows users management",
 					Contact = new OpenApiContact
 					{

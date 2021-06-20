@@ -25,6 +25,7 @@ namespace ToDoList.UI.Controllers
 	[Produces("application/json")]
 	[Route("authentication")]
 	[ApiController]
+	[ApiExplorerSettings(GroupName = "Authentication")]
 	public class AuthenticationController : ControllerBase
 	{
 		#region Fields
