@@ -62,7 +62,10 @@ namespace ToDoList.UI
 			}
 
 			app.UseSwagger();
-			app.UseSwaggerUI(x => { x.SwaggerEndpoint("/swagger/v1/swagger.json", "v1"); });
+			app.UseSwaggerUI(options =>
+			{
+				options.SwaggerEndpoint("/swagger/Users/swagger.json", "Users");
+			});
 
 			app.UseHttpsRedirection();
 			app.UseRouting();

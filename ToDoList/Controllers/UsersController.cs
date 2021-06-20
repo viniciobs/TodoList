@@ -21,6 +21,7 @@ namespace ToDoList.UI.Controllers
 	#endregion Documentation
 
 	[Route("Users")]
+	[ApiExplorerSettings(GroupName = "Users")]
 	public class UsersController : ApiControllerBase
 	{
 		#region Constructor
