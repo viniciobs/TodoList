@@ -1,4 +1,5 @@
 ﻿using Repository.DTOs.Accounts;
+using Repository.Interfaces.Base;
 using System;
 using System.Threading.Tasks;
 
