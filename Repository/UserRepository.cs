@@ -35,6 +35,7 @@ namespace Repository
 				Id = x.Id,
 				Name = x.Name,
 				Login = x.Login,
+				Role = x.Role,
 				CreatedAt = x.CreatedAt
 			}).ToArray();
 		}
@@ -49,6 +50,7 @@ namespace Repository
 				Id = user.Id,
 				Login = user.Login,
 				Name = user.Name,
+				Role = user.Role,
 				CreatedAt = user.CreatedAt
 			};
 		}

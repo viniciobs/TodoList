@@ -38,7 +38,7 @@ namespace Repository
 			};
 		}
 
-		public async Task ChangePassword(System.Guid userId, ChangePasswordData data)
+		public async Task ChangePassword(Guid userId, ChangePasswordData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (string.IsNullOrEmpty(data.OldPassword)) throw new MissingArgumentsException(data.OldPassword);

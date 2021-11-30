@@ -19,7 +19,7 @@ namespace ToDoList.UI.Controllers
 	#region Documentation
 
 	/// <summary>
-	/// Responsible class for users authentications.
+	/// Responsible class for account management
 	/// </summary>
 
 	#endregion Documentation
@@ -246,7 +246,11 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> Delete(Guid id)
+		public async Task<IActionResult> Delete(
+			[FromRoute] Guid id,
+			[FromServices] IHttpContextAccessor httpContextAccessor,
+			[FromServices] IUserRepository userRepository
+			)
 		{
 			try
 			{

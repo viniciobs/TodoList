@@ -62,6 +62,16 @@ namespace Domains
 
 #if DEBUG
 
+		#region Documentation
+
+		/// <summary>
+		/// Generate a user instance with admin role.
+		/// Must only be used for tests purposes.
+		/// </summary>
+		/// <returns>Admins user.</returns>
+
+		#endregion Documentation
+
 		public static User NewAdmin()
 		{
 			var admin = new User()
