@@ -201,6 +201,7 @@ namespace ToDoList.UI.Controllers
 			if (string.IsNullOrEmpty(data.NewPassword)) return BadRequest(nameof(data.NewPassword));
 
 			var authenticatedUser = httpContextAccessor.GetAuthenticatedUser(userRepository);
+			if (authenticatedUser == null) return Unauthorized();
 
 			if (id != authenticatedUser.Id)
 				return Conflict(new Exception("The given identifier mismatch the authenticated user"));

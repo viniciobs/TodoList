@@ -17,7 +17,14 @@ namespace ToDoList.UI.Controllers.Commom
 			var claim = httpContextAccessor.HttpContext.User.Claims.First(x => x.Type == ClaimTypes.Sid);
 			var userId = new Guid(claim.Value);
 
-			return repo.Get(userId).Result;
+			try
+			{
+				return repo.Get(userId)?.Result;
+			}
+			catch
+			{
+				return null;
+			}
 		}
 	}
 }

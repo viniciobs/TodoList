@@ -27,7 +27,6 @@ namespace ToDoList.UI.Controllers.Base
 			this.repo = repo;
 
 			authenticatedUser = httpContextAccessor.GetAuthenticatedUser(repo);
-			if (authenticatedUser == null) throw new PermissionException();
 		}
 
 		#endregion Constructor
