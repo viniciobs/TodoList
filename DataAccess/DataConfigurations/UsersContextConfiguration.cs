@@ -35,6 +35,10 @@ namespace DataAccess.DataConfigurations
 				.HasMaxLength(20)
 				.IsUnicode(false);
 
+			entity.Property(e => e.IsActive)
+				.IsRequired()
+				.HasDefaultValue(true);
+
 			entity.HasIndex(e => e.Login).HasDatabaseName("IX_User_Login").IsUnique();
 		}
 	}

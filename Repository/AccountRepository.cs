@@ -15,7 +15,7 @@ namespace Repository
 
 		public AccountRepository(ApplicationContext context)
 			: base(context)
-		{ }
+		{ }		
 
 		#endregion Constructor
 
@@ -72,6 +72,23 @@ namespace Repository
 			if (user == null) throw new NotFoundException(typeof(User));
 
 			_db.User.Remove(user);
+		}
+
+		public async Task AlterStatus(Guid userId, bool active)
+		{
+			var user = await _db.User.FindAsync(userId);
+			if (user == null) throw new NotFoundException(typeof(User));
+
+			if (active)
+			{
+				user.Activate();
+			}
+			else
+			{
+				user.Deactivate();
+			}
+
+			_db.User.Update(user);
 		}
 
 		#endregion Methods

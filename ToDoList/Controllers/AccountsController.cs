@@ -298,6 +298,61 @@ namespace ToDoList.UI.Controllers
 
 			return NoContent();
 		}
+		
+		[Authorize]
+		[HttpPatch]
+		[Route("Activate")]
+		[ProducesDefaultResponseType]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<IActionResult> Activate(
+			[FromServices] IHttpContextAccessor httpContextAccessor,
+			[FromServices] IUserRepository userRepository)
+		{
+			var authenticatedUser = httpContextAccessor.GetAuthenticatedUser(userRepository);
+			if (authenticatedUser == null) return Unauthorized();
+
+			try
+			{
+				await repo.AlterStatus(authenticatedUser.Id, true);
+				await repo.SaveChangesAsync();
+			}
+			catch(Exception exception)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+			}
+
+			return NoContent();
+		}
+
+
+		[Authorize]
+		[HttpPatch]
+		[Route("Deactivate")]
+		[ProducesDefaultResponseType]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<IActionResult> Deactivate(
+			[FromServices] IHttpContextAccessor httpContextAccessor,
+			[FromServices] IUserRepository userRepository)
+		{
+			var authenticatedUser = httpContextAccessor.GetAuthenticatedUser(userRepository);
+			if (authenticatedUser == null) return Unauthorized();
+
+			try
+			{
+				await repo.AlterStatus(authenticatedUser.Id, false);
+				await repo.SaveChangesAsync();
+			}
+			catch (Exception exception)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+			}
+
+			return NoContent();
+		}
 
 		#endregion Methods
 	}

@@ -15,6 +15,7 @@ namespace Domains
 		public string Name { get; private set; }
 		public string Login { get; private set; }
 		public string Password { get; private set; }
+		public bool IsActive { get; set; }
 		public DateTime CreatedAt { get; private set; }
 		public UserRole Role { get; private set; }
 
@@ -94,6 +95,16 @@ namespace Domains
 			Password = password;
 		}
 
+		public void Activate()
+		{
+			IsActive = true;
+		}
+
+		public void Deactivate()
+		{
+			IsActive = false;
+		}
+
 		public void AlterUserRole(User targetUser, UserRole role)
 		{
 			if (this.Role != UserRole.Admin) throw new PermissionException("No rigths to alter roles");
@@ -112,7 +123,7 @@ namespace Domains
 			targetUser.TargetTasks.Add(task);
 
 			return task;
-		}
+		}		
 
 		public void FinishTask(Task taskToFinish)
 		{
