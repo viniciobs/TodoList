@@ -17,10 +17,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Controllers\TasksController.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<Content Remove="appsettings.development.json" />
 	</ItemGroup>
 

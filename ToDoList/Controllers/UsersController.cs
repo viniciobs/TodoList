@@ -39,8 +39,11 @@ namespace ToDoList.UI.Controllers
 
 		/// <summary>
 		/// List users.
-		/// Can be filtered by username and login.
+		/// Can be filtered by username and login. Users with admin role can filter also by user's status. Normal users use the active filter always with true.
 		/// </summary>
+		/// <param name="name">Filter name. Optional.</param>
+		/// <param name="login">Filter login. Optional.</param>
+		/// <param name="active">Filter active status. Optional and only admin users can use this param.</param>
 		/// <returns>A list of users.</returns>
 
 		#endregion Documentation
@@ -50,11 +53,20 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<IEnumerable<UserResult>>> Get(string name, string login)
+		public async Task<ActionResult<IEnumerable<UserResult>>> Get(string name, string login, bool? active)
 		{
 			try
 			{
-				var users = await repo.Get(name: name, login: login);
+				if (!authenticatedUser.IsAdmin) active = true;
+
+				var filter = new UserFilter()
+				{
+					Name = name,
+					Login = login,
+					IsActive = active
+				};
+
+				var users = await repo.Get(filter);
 
 				return Ok(users);
 			}

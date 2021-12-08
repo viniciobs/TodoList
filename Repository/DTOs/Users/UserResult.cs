@@ -9,6 +9,7 @@ namespace Repository.DTOs.Users
 		public string Name { get; set; }
 		public string Login { get; set; }
 		public DateTime CreatedAt { get; set; }
-		public UserRole Role { get; set; }
+		public UserRole Role { get; set; }		
+		public bool IsAdmin => Role == UserRole.Admin;			
 	}
 }
