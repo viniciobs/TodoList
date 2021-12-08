@@ -19,7 +19,7 @@ namespace ToDoList.UI.Controllers.Commom
 
 			try
 			{
-				return repo.Get(userId)?.Result;
+				return repo.Find(userId)?.Result;
 			}
 			catch
 			{

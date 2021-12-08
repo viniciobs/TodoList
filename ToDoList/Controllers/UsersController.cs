@@ -57,7 +57,7 @@ namespace ToDoList.UI.Controllers
 		{
 			try
 			{
-				if (!authenticatedUser.IsAdmin) active = true;
+				if (authenticatedUser.Role != UserRole.Admin) active = true;
 
 				var filter = new UserFilter()
 				{
@@ -80,6 +80,7 @@ namespace ToDoList.UI.Controllers
 
 		/// <summary>
 		/// Show details of a specific user.
+		/// Only admins can see details of a deactivated user.
 		/// </summary>
 		/// <param name="id">User id.</param>
 		/// <returns>User details.</returns>
@@ -99,7 +100,12 @@ namespace ToDoList.UI.Controllers
 
 			try
 			{
-				user = await repo.Get(id);
+				bool? filterOnlyActive = null;
+
+				if (authenticatedUser.Role != UserRole.Admin)
+					filterOnlyActive = true;
+
+				user = await repo.Find(id, filterOnlyActive);
 			}
 			catch (NotFoundException notFoundException)
 			{

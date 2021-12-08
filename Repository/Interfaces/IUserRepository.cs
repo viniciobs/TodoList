@@ -8,7 +8,7 @@ namespace Repository.Interfaces
 	public interface IUserRepository : IRepository
 	{
 		public Task<UserResult[]> Get(UserFilter filter);
-		public Task<UserResult> Get(Guid id);
+		public Task<UserResult> Find(Guid id, bool? isActive = null);
 		public Task AlterUserRole(AlterUserRoleData data);
 	}
 }

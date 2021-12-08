@@ -37,9 +37,9 @@ namespace Repository
 			}).ToArray();
 		}
 
-		public async Task<UserResult> Get(Guid id)
+		public async Task<UserResult> Find(Guid id, bool? isActive = null)
 		{
-			var user = await _db.User.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
+			var user = await _db.User.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && (isActive == null || x.IsActive == isActive.Value));
 			if (user == null) throw new NotFoundException(typeof(User));
 
 			return new UserResult()
