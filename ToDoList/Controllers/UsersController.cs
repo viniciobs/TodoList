@@ -44,16 +44,18 @@ namespace ToDoList.UI.Controllers
 		/// <param name="name">Filter name. Optional.</param>
 		/// <param name="login">Filter login. Optional.</param>
 		/// <param name="active">Filter active status. Optional and only admin users can use this param.</param>
+		/// <param name="page">Filter page.</param>
+		/// <param name="itemsPerPage">Items quantity per result.</param>
 		/// <returns>A list of users.</returns>
 
 		#endregion Documentation
-
+		
 		[HttpGet]
 		[ProducesDefaultResponseType]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<IEnumerable<UserResult>>> Get(string name, string login, bool? active)
+		public async Task<ActionResult<IEnumerable<UserResult>>> Get(string name, string login, bool? active, int page, int itemsPerPage)
 		{
 			try
 			{
@@ -63,9 +65,11 @@ namespace ToDoList.UI.Controllers
 				{
 					Name = name,
 					Login = login,
-					IsActive = active
+					IsActive = active,
+					Page = page,
+					ItemsPerPage = itemsPerPage
 				};
-
+				
 				var users = await repo.Get(filter);
 
 				return Ok(users);

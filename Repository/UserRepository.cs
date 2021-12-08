@@ -2,6 +2,7 @@
 using Domains;
 using Domains.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Repository.DTOs;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
 using Repository.Util;
@@ -24,8 +25,8 @@ namespace Repository
 		#region Methods
 
 		public async Task<UserResult[]> Get(UserFilter filter)
-		{			
-			var users = await _db.User.AsNoTracking().Filter(filter).OrderBy(x => x.Name).ToArrayAsync();
+		{
+			var users = await _db.User.AsNoTracking().Filter(filter).OrderBy(x => x.Name).Paginate((PaginationFilter)filter).ToArrayAsync();
 
 			return users.Select(x => new UserResult()
 			{

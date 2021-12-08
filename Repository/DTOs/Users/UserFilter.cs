@@ -1,6 +1,6 @@
 ﻿namespace Repository.DTOs.Users
 {
-	public class UserFilter
+	public class UserFilter : PaginationFilter
 	{
 		public string Name { get; set; }
 		public string Login { get; set; }
