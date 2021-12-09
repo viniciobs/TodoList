@@ -1,4 +1,6 @@
-﻿namespace Repository.DTOs.Users
+﻿using Repository.DTOs._Commom.Pagination;
+
+namespace Repository.DTOs.Users
 {
 	public class UserFilter : PaginationFilter
 	{

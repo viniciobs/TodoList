@@ -3,6 +3,7 @@ using Domains.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
 using System;
@@ -55,7 +56,7 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<IEnumerable<UserResult>>> Get(string name, string login, bool? active, int page, int itemsPerPage)
+		public async Task<ActionResult<PaginationResult<UserResult>>> Get(string name, string login, bool? active, int page, int itemsPerPage)
 		{
 			try
 			{

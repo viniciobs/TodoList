@@ -3,8 +3,10 @@ using Domains;
 using Domains.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Repository.DTOs;
+using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
+using Repository.Interfaces_Commom;
 using Repository.Util;
 using System;
 using System.Linq;
@@ -14,28 +16,42 @@ namespace Repository
 {
 	public class UserRepository : Repository, IUserRepository
 	{
+		#region Properties
+		
+		private readonly IPaginationRepository _pagination;
+
+		#endregion Properties
+
 		#region Constructor
 
-		public UserRepository(ApplicationContext context)
+		public UserRepository(ApplicationContext context, IPaginationRepository paginationRepository)
 			: base(context)
-		{ }
+		{
+			_pagination = paginationRepository;
+		}
 
 		#endregion Constructor
 
 		#region Methods
 
-		public async Task<UserResult[]> Get(UserFilter filter)
+		public async Task<PaginationResult<UserResult>> Get(UserFilter filter)
 		{
-			var users = await _db.User.AsNoTracking().Filter(filter).OrderBy(x => x.Name).Paginate((PaginationFilter)filter).ToArrayAsync();
+			var query = _db.User.AsNoTracking().Filter(filter);
+			var users = await query.OrderBy(x => x.Name).Paginate(filter).ToArrayAsync();
+			var total = await query.CountAsync();
 
-			return users.Select(x => new UserResult()
-			{
-				Id = x.Id,
-				Name = x.Name,
-				Login = x.Login,
-				Role = x.Role,
-				CreatedAt = x.CreatedAt
-			}).ToArray();
+			return _pagination.Paginate(
+				filter,
+				total,
+				users.Select(x => new UserResult()
+				{
+					Id = x.Id,
+					Name = x.Name,
+					Login = x.Login,
+					Role = x.Role,
+					CreatedAt = x.CreatedAt
+				})
+			); ;
 		}
 
 		public async Task<UserResult> Find(Guid id, bool? isActive = null)

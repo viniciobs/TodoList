@@ -1,4 +1,4 @@
-﻿namespace Repository.DTOs
+﻿namespace Repository.DTOs._Commom.Pagination
 {
 	public abstract class PaginationFilter
 	{

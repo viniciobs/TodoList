@@ -7,7 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Converters;
 using Repository;
+using Repository._Commom;
 using Repository.Interfaces;
+using Repository.Interfaces_Commom;
 using System.Linq;
 using ToDoList.UI.Configurations.ServicesConfigurations;
 
@@ -50,6 +52,7 @@ namespace ToDoList.UI
 
 			services.AddScoped<IAccountRepository, AccountRepository>();
 			services.AddScoped<IUserRepository, UserRepository>();
+			services.AddSingleton<IPaginationRepository, PaginationRepository>();
 
 			services.AddJwtAuthentication(configuration.GetSection("Authentication"));
 			services.AddSwagger(configuration);
