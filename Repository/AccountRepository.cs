@@ -86,6 +86,7 @@ namespace Repository
 			}
 			else
 			{
+				await _db.Entry(user).Collection(x => x.TargetTasks).LoadAsync();
 				user.Deactivate();
 			}
 

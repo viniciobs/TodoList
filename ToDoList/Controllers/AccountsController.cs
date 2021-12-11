@@ -166,7 +166,9 @@ namespace ToDoList.UI.Controllers
 				Password = data.Password
 			};
 
-			return await Authenticate(authenticationData);
+			var result = await Authenticate(authenticationData);
+
+			return StatusCode(StatusCodes.Status201Created, result);
 		}
 
 		#region Documentation

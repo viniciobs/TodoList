@@ -50,7 +50,7 @@ namespace ToDoList.UI.Controllers
 		[HttpPost]
 		[Authorize(Roles = "Admin")]		
 		[ProducesDefaultResponseType]		
-		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -72,7 +72,7 @@ namespace ToDoList.UI.Controllers
 				var result = await _repo.Assign(assignData);
 				await _repo.SaveChangesAsync();
 
-				return result;
+				return StatusCode(StatusCodes.Status201Created, result);
 			}
 			catch(PermissionException permissionException)
 			{
@@ -87,6 +87,39 @@ namespace ToDoList.UI.Controllers
 				return NotFound(notfoundException);
 			}
 			catch(Exception exception)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+			}
+		}
+
+		/// <summary>
+		/// Retrives details about a task.
+		/// </summary>
+		/// <param name="targetUserId">User tied to the task</param>
+		/// <param name="id">Task identifier</param>
+		/// <returns></returns>
+		[HttpGet("{id:Guid}")]
+		[ProducesDefaultResponseType]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<ActionResult<AssignTaskResult>> Get([FromRoute] Guid targetUserId, [FromRoute] Guid id)
+		{
+			if (authenticatedUser.Id != targetUserId && authenticatedUser.Role != Domains.UserRole.Admin) return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to see this task details");
+
+			try
+			{
+				var result = await _repo.Get(targetUserId, id);
+
+				return Ok(result);
+			}
+			catch (NotFoundException notfoundException)
+			{
+				return NotFound(notfoundException);
+			}
+			catch (Exception exception)
 			{
 				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}

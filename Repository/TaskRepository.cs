@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Repository.DTOs.Tasks;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
+using System;
 using System.Threading.Tasks;
 
 namespace Repository
@@ -31,12 +32,15 @@ namespace Repository
 			_db.Entry(data.CreatorUser).State = EntityState.Unchanged;
 			_db.Entry(data.TargetUser).State = EntityState.Unchanged;
 
-			return new AssignTaskResult()
-			{
-				Id = task.Id,
-				Description = task.Description,
-				TargetUser = UserResult.Convert(data.TargetUser)
-			};
-		}		
+			return AssignTaskResult.Convert(task);
+		}
+
+		public async Task<AssignTaskResult> Get(Guid userId, Guid id)
+		{
+			var task = await _db.Task.AsNoTracking().Include(x => x.CreatorUser).Include(x => x.TargetUser).SingleOrDefaultAsync(x => x.Id == id && (x.TargetUserId == userId || x.CreatorUserId == userId));
+			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
+
+			return AssignTaskResult.Convert(task); 
+		}
 	}
 }
