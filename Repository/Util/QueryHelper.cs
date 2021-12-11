@@ -1,6 +1,7 @@
 ﻿using Domains;
 using Microsoft.EntityFrameworkCore;
 using Repository.DTOs._Commom.Pagination;
+using Repository.DTOs.Tasks;
 using Repository.DTOs.Users;
 using System.Linq;
 
@@ -31,6 +32,32 @@ namespace Repository.Util
 
 			if (filterByStatus)
 				source = source.Where((x) => x.IsActive == (bool)filter.IsActive);
+
+			return source;
+		}
+
+		public static IQueryable<User.Task> Filter(this IQueryable<User.Task> source, TaskFilter filter)
+		{
+			if (filter == null) return source;
+
+			var filterByStatus = filter.Completed.HasValue;
+			var filterByCompletedPeriod = filter.CompletedBetween.HasValue;
+			var filterByCreatorUser = filter.CreatorUser.HasValue;
+			var filterByTargetUser = filter.TargetUser.HasValue;
+
+			var period = filter.CompletedBetween;
+			
+			if (filterByStatus)
+				source = source.Where((x) => x.CompletedAt.HasValue == (bool)filter.Completed);
+
+			if (filterByCompletedPeriod)
+				source = source.Where(x => x.CompletedAt.HasValue && period.IsBetween(x.CompletedAt.Value));
+
+			if (filterByCreatorUser)
+				source = source.Where(x => x.CreatorUserId == filter.CreatorUser);
+
+			if (filterByTargetUser)
+				source = source.Where(x => x.TargetUserId == filter.TargetUser);
 
 			return source;
 		}

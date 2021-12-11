@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Repository.DTOs._Commom;
+using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Tasks;
 using Repository.Interfaces;
 using System;
@@ -17,13 +19,13 @@ namespace ToDoList.UI.Controllers
 	/// </summary>
 
 	#endregion Documentation
-		
-	[Route("Users/{targetUserId:Guid}/Tasks")]
+			
 	[ApiExplorerSettings(GroupName = "Tasks")]
 	public class TasksController : ApiControllerBase
 	{
 		#region Properties
 
+		private const string BASE_ROUTE = "Users/{targetUserId:Guid}/Tasks";
 		private readonly ITaskRepository _repo;
 
 		#endregion Properties
@@ -41,13 +43,14 @@ namespace ToDoList.UI.Controllers
 		#region Methods
 
 		/// <summary>
-		/// Creates and set a task to a given user.
+		/// Creates and sets a task to a given user.
 		/// Only admins can set tasks to users.
 		/// </summary>
 		/// <param name="targetUserId">User whom the task is going to be assigned.</param>
 		/// <param name="description">Task's description.</param>
 		/// <returns>Task details.</returns>
-		[HttpPost]
+		[Route(BASE_ROUTE)]
+		[HttpPost]		
 		[Authorize(Roles = "Admin")]		
 		[ProducesDefaultResponseType]		
 		[ProducesResponseType(StatusCodes.Status201Created)]
@@ -56,7 +59,7 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status409Conflict)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<AssignTaskResult>> New([FromRoute] Guid targetUserId, [FromBody] string description)
+		public async Task<ActionResult<TaskResult>> New([FromRoute] Guid targetUserId, [FromBody] string description)
 		{		
 			try
 			{
@@ -97,27 +100,60 @@ namespace ToDoList.UI.Controllers
 		/// </summary>
 		/// <param name="targetUserId">User tied to the task</param>
 		/// <param name="id">Task identifier</param>
-		/// <returns></returns>
-		[HttpGet("{id:Guid}")]
+		/// <returns></returns>		
+		[Route(BASE_ROUTE + "{id:Guid}")]
+		[HttpGet]
 		[ProducesDefaultResponseType]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<AssignTaskResult>> Get([FromRoute] Guid targetUserId, [FromRoute] Guid id)
+		public async Task<ActionResult<TaskResult>> Find([FromRoute] Guid targetUserId, [FromRoute] Guid id)
 		{
 			if (authenticatedUser.Id != targetUserId && authenticatedUser.Role != Domains.UserRole.Admin) return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to see this task details");
 
 			try
 			{
-				var result = await _repo.Get(targetUserId, id);
+				var result = await _repo.Find(targetUserId, id);
 
 				return Ok(result);
 			}
 			catch (NotFoundException notfoundException)
 			{
 				return NotFound(notfoundException);
+			}
+			catch (Exception exception)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+			}
+		}
+
+		[Route("Tasks")]
+		[HttpGet]
+		[Authorize(Roles = "Admin")]
+		[ProducesDefaultResponseType]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<ActionResult<PaginationResult<TaskResult>>> Get(bool? completed, Guid? creatorUser, Guid? targetUser, DateTime? start, DateTime? end, int page, int itemsPerPage)
+		{
+			try
+			{
+				var filter = new TaskFilter()
+				{
+					Completed = completed,
+					CreatorUser = creatorUser,
+					TargetUser = targetUser,
+					CompletedBetween = new Period(start, end),
+					Page = page,
+					ItemsPerPage = itemsPerPage
+				};
+
+				var result = await _repo.Get(filter);
+
+				return Ok(result);
 			}
 			catch (Exception exception)
 			{

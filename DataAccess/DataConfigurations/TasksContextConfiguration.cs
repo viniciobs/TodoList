@@ -20,6 +20,9 @@ namespace DataAccess.DataConfigurations
 				.HasMaxLength(255)
 				.IsUnicode(false);
 
+			entity.Property(e => e.CreatedAt)
+				.IsRequired();
+
 			entity.HasOne(e => e.CreatorUser)
 				.WithMany(e => e.CreatedTasks)
 				.HasForeignKey(e => e.CreatorUserId)

@@ -13,6 +13,7 @@ namespace Domains
 
 			public Guid Id { get; private set; }
 			public string Description { get; private set; }
+			public DateTime CreatedAt { get; private set; }
 			public DateTime? CompletedAt { get; private set; }
 			public Guid CreatorUserId { get; private set; }
 			public virtual User CreatorUser { get; private set; }
@@ -40,6 +41,7 @@ namespace Domains
 				TargetUser = target;
 				TargetUserId = target.Id;
 				Description = description;
+				CreatedAt = DateTime.UtcNow;
 
 				Comments = new HashSet<TaskComment>();
 			}

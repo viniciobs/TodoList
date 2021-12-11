@@ -3,16 +3,16 @@ using System;
 
 namespace Repository.DTOs.Tasks
 {
-	public class AssignTaskResult
+	public class TaskResult
 	{
 		public Guid Id { get; set; }
 		public string Description { get;  set; }
 		public UserResult TargetUser { get; set; }
 		public UserResult CreatorUser { get; set; }
 
-		public static AssignTaskResult Convert(Domains.User.Task task)
+		public static TaskResult Convert(Domains.User.Task task)
 		{
-			return new AssignTaskResult()
+			return new TaskResult()
 			{
 				Id = task.Id,
 				Description = task.Description,

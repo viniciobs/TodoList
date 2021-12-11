@@ -1,22 +1,28 @@
 ﻿using DataAccess;
 using Domains.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Tasks;
-using Repository.DTOs.Users;
 using Repository.Interfaces;
+using Repository.Interfaces_Commom;
+using Repository.Util;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Repository
 {
 	public class TaskRepository : _Commom.Repository, ITaskRepository
 	{
-		public TaskRepository(ApplicationContext context) 
+		private readonly IPaginationRepository _pagination;
+
+		public TaskRepository(ApplicationContext context, IPaginationRepository pagination) 
 			: base(context)
 		{
+			_pagination = pagination;
 		}	
 
-		public async Task<AssignTaskResult> Assign(AssignTaskData data)
+		public async Task<TaskResult> Assign(AssignTaskData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (string.IsNullOrEmpty(data.Description)) throw new MissingArgumentsException(nameof(data.Description));
@@ -32,15 +38,28 @@ namespace Repository
 			_db.Entry(data.CreatorUser).State = EntityState.Unchanged;
 			_db.Entry(data.TargetUser).State = EntityState.Unchanged;
 
-			return AssignTaskResult.Convert(task);
+			return TaskResult.Convert(task);
 		}
 
-		public async Task<AssignTaskResult> Get(Guid userId, Guid id)
+		public async Task<TaskResult> Find(Guid userId, Guid id)
 		{
 			var task = await _db.Task.AsNoTracking().Include(x => x.CreatorUser).Include(x => x.TargetUser).SingleOrDefaultAsync(x => x.Id == id && (x.TargetUserId == userId || x.CreatorUserId == userId));
 			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
 
-			return AssignTaskResult.Convert(task); 
+			return TaskResult.Convert(task); 
 		}
-	}
+
+		public async Task<PaginationResult<TaskResult>> Get(TaskFilter filter)
+		{
+			var query = _db.Task.AsNoTracking().Include(x => x.CreatorUser).Include(x => x.TargetUser).Filter(filter);
+			var tasks = await query.OrderBy(x => x.CreatedAt).Paginate(filter).ToArrayAsync();
+			var total = await query.CountAsync();
+
+			return _pagination.Paginate(
+				filter,
+				total,
+				tasks.Select(tasks => TaskResult.Convert(tasks))
+			);
+		}
+	}	
 }
