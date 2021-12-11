@@ -2,7 +2,7 @@
 using Domains.Exceptions;
 using System.Threading.Tasks;
 
-namespace Repository
+namespace Repository._Commom
 {
 	public abstract class Repository
 	{

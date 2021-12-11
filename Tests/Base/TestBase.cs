@@ -34,7 +34,7 @@ namespace Domains.Tests
 
 		protected User GenerateAdminUser() => User.NewAdmin();
 
-		protected Task GenerateRandomTask() => GenerateRandomUser().SetTask(GenerateRandomUser(), ValidTaskDescription);
+		protected Task GenerateRandomTask() => GenerateRandomUser().AssignTask(GenerateRandomUser(), ValidTaskDescription);
 
 		protected string GenerateRandomString() => Guid.NewGuid().ToString("N").ToLower().Substring(0, 10);
 	}

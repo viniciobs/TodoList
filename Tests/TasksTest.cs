@@ -16,9 +16,9 @@ namespace Tests
 			var user = GenerateRandomUser();
 
 			// Act and assert
-			Assert.ThrowsException<MissingArgumentsException>(() => user.SetTask(user, NullTaskDescription));
-			Assert.ThrowsException<MissingArgumentsException>(() => user.SetTask(user, EmptyTaskDescription));
-			Assert.ThrowsException<MissingArgumentsException>(() => user.SetTask(NullUser, ValidTaskDescription));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.AssignTask(user, NullTaskDescription));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.AssignTask(user, EmptyTaskDescription));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.AssignTask(NullUser, ValidTaskDescription));
 		}
 
 		[TestMethod]
@@ -27,7 +27,7 @@ namespace Tests
 			// Act
 			var creatorUser = GenerateRandomUser();
 			var targetUser = GenerateRandomUser();
-			var task = creatorUser.SetTask(targetUser, ValidTaskDescription);
+			var task = creatorUser.AssignTask(targetUser, ValidTaskDescription);
 
 			// Assert
 			Assert.IsTrue(creatorUser.CreatedTasks.Count == 1);
@@ -50,8 +50,8 @@ namespace Tests
 			var taskDescription2 = GenerateRandomString();
 
 			// Act
-			var task1 = creatorUser.SetTask(targetUser, taskDescription1);
-			var task2 = creatorUser.SetTask(targetUser, taskDescription2);
+			var task1 = creatorUser.AssignTask(targetUser, taskDescription1);
+			var task2 = creatorUser.AssignTask(targetUser, taskDescription2);
 
 			// Assert
 			Assert.IsTrue(creatorUser.CreatedTasks.Count == 2);
@@ -75,8 +75,8 @@ namespace Tests
 			var user2 = GenerateRandomUser();
 
 			// Act
-			var task1 = user1.SetTask(user2, taskDescription1);
-			var task2 = user2.SetTask(user1, taskDescription2);
+			var task1 = user1.AssignTask(user2, taskDescription1);
+			var task2 = user2.AssignTask(user1, taskDescription2);
 
 			// Assert
 			Assert.IsTrue(user1.CreatedTasks.Count == 1);
@@ -96,7 +96,7 @@ namespace Tests
 		{
 			// Arrange
 			var user = GenerateRandomUser();
-			var task = user.SetTask(user, ValidTaskDescription);
+			var task = user.AssignTask(user, ValidTaskDescription);
 			user.FinishTask(task);
 
 			// Act and assert
@@ -128,10 +128,10 @@ namespace Tests
 			var creatorUser = GenerateRandomUser();
 			var targetUser = GenerateRandomUser();
 
-			var task1 = creatorUser.SetTask(targetUser, ValidTaskDescription);
+			var task1 = creatorUser.AssignTask(targetUser, ValidTaskDescription);
 			creatorUser.FinishTask(task1);
 
-			var task2 = creatorUser.SetTask(targetUser, ValidTaskDescription);
+			var task2 = creatorUser.AssignTask(targetUser, ValidTaskDescription);
 			targetUser.FinishTask(task2);
 
 			//Act
@@ -164,7 +164,7 @@ namespace Tests
 		{
 			// Arrange
 			var user = GenerateRandomUser();
-			var task = user.SetTask(user, ValidTaskDescription);
+			var task = user.AssignTask(user, ValidTaskDescription);
 			user.FinishTask(task);
 
 			//Act and assert
@@ -177,19 +177,19 @@ namespace Tests
 			var creatorUser = GenerateRandomUser();
 			var targetUser = GenerateRandomUser();
 
-			var task1 = creatorUser.SetTask(targetUser, ValidTaskDescription);
+			var task1 = creatorUser.AssignTask(targetUser, ValidTaskDescription);
 			targetUser.FinishTask(task1);
 			targetUser.ReopenTask(task1);
 
-			var task2 = creatorUser.SetTask(targetUser, ValidTaskDescription);
+			var task2 = creatorUser.AssignTask(targetUser, ValidTaskDescription);
 			targetUser.FinishTask(task2);
 			creatorUser.ReopenTask(task2);
 
-			var task3 = creatorUser.SetTask(targetUser, ValidTaskDescription);
+			var task3 = creatorUser.AssignTask(targetUser, ValidTaskDescription);
 			creatorUser.FinishTask(task3);
 			targetUser.ReopenTask(task3);
 
-			var task4 = creatorUser.SetTask(targetUser, ValidTaskDescription);
+			var task4 = creatorUser.AssignTask(targetUser, ValidTaskDescription);
 			creatorUser.FinishTask(task4);
 			creatorUser.ReopenTask(task4);
 

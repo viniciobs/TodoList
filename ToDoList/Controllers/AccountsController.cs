@@ -64,8 +64,8 @@ namespace ToDoList.UI.Controllers
 		[Route("Authenticate")]
 		[ProducesDefaultResponseType]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(AuthenticationData))]
-		[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(AuthenticationData))]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<ActionResult<AuthenticationResult>> Authenticate(AuthenticationData data)
 		{
@@ -247,11 +247,7 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> Delete(
-			[FromRoute] Guid id,
-			[FromServices] IHttpContextAccessor httpContextAccessor,
-			[FromServices] IUserRepository userRepository
-			)
+		public async Task<IActionResult> Delete([FromRoute] Guid id)
 		{
 			try
 			{
@@ -299,6 +295,9 @@ namespace ToDoList.UI.Controllers
 			return NoContent();
 		}
 		
+		/// <summary>
+		/// Activate an account.
+		/// </summary>
 		[Authorize]
 		[HttpPatch]
 		[Route("Activate")]
@@ -326,13 +325,17 @@ namespace ToDoList.UI.Controllers
 			return NoContent();
 		}
 
-
+		/// <summary>
+		/// Deactivate an account.
+		/// If the account has one or more pending tasks, it can't be deactivated.
+		/// </summary>
 		[Authorize]
 		[HttpPatch]
 		[Route("Deactivate")]
 		[ProducesDefaultResponseType]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<IActionResult> Deactivate(
 			[FromServices] IHttpContextAccessor httpContextAccessor,
@@ -345,6 +348,10 @@ namespace ToDoList.UI.Controllers
 			{
 				await repo.AlterStatus(authenticatedUser.Id, false);
 				await repo.SaveChangesAsync();
+			}
+			catch(RuleException ruleException)
+			{
+				return UnprocessableEntity(ruleException);
 			}
 			catch (Exception exception)
 			{

@@ -52,6 +52,7 @@ namespace ToDoList.UI
 
 			services.AddScoped<IAccountRepository, AccountRepository>();
 			services.AddScoped<IUserRepository, UserRepository>();
+			services.AddScoped<ITaskRepository, TaskRepository>();
 			services.AddSingleton<IPaginationRepository, PaginationRepository>();
 
 			services.AddJwtAuthentication(configuration.GetSection("Authentication"));
@@ -70,6 +71,7 @@ namespace ToDoList.UI
 			{
 				options.SwaggerEndpoint("/swagger/Accounts/swagger.json", "Accounts");
 				options.SwaggerEndpoint("/swagger/Users/swagger.json", "Users");
+				options.SwaggerEndpoint("/swagger/Tasks/swagger.json", "Tasks");
 			});
 
 			app.UseHttpsRedirection();

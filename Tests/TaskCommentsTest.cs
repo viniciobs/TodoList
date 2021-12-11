@@ -14,7 +14,7 @@ namespace Tests
 		{
 			// Arrange
 			var user = GenerateRandomUser();
-			var task = user.SetTask(GenerateRandomUser(), ValidTaskDescription);
+			var task = user.AssignTask(GenerateRandomUser(), ValidTaskDescription);
 
 			// Act and assert
 			Assert.ThrowsException<MissingArgumentsException>(() => user.AddComment(NullTask, ValidComment));
@@ -34,7 +34,7 @@ namespace Tests
 		{
 			// Arrange
 			var user = GenerateRandomUser();
-			var task = user.SetTask(GenerateRandomUser(), ValidTaskDescription);
+			var task = user.AssignTask(GenerateRandomUser(), ValidTaskDescription);
 
 			// Act and assert
 			Assert.ThrowsException<MissingArgumentsException>(() => user.AddComment(task, NullComment));
@@ -46,7 +46,7 @@ namespace Tests
 		{
 			// Arrange
 			var user = GenerateRandomUser();
-			var task = user.SetTask(GenerateRandomUser(), ValidTaskDescription);
+			var task = user.AssignTask(GenerateRandomUser(), ValidTaskDescription);
 
 			user.AddComment(task, ValidComment);
 
@@ -59,7 +59,7 @@ namespace Tests
 		{
 			// Arrange
 			var user = GenerateRandomUser();
-			var task = user.SetTask(user, ValidTaskDescription);
+			var task = user.AssignTask(user, ValidTaskDescription);
 			var comment1 = GenerateRandomString();
 			var comment2 = GenerateRandomString();
 			var comment3 = GenerateRandomString();

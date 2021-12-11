@@ -13,6 +13,13 @@ namespace ToDoList.UI.Configurations.ServicesConfigurations
 		{
 			services.AddSwaggerGenNewtonsoftSupport();
 
+			var contact = new OpenApiContact
+			{
+				Name = "Vinício",
+				Email = "vinicio.barreto.santos@gmail.com",
+				Url = new Uri("https://www.linkedin.com/in/vinicio-barreto-santos/")
+			};
+
 			services.AddSwaggerGen(x =>
 			{
 				x.SwaggerDoc("Accounts", new OpenApiInfo
@@ -20,12 +27,7 @@ namespace ToDoList.UI.Configurations.ServicesConfigurations
 					Version = "1",
 					Title = "Accounts API",
 					Description = "The API provides accounts management",
-					Contact = new OpenApiContact
-					{
-						Name = "Vinício",
-						Email = "vinicio.barreto.santos@gmail.com",
-						Url = new Uri("https://www.linkedin.com/in/vinicio-barreto-santos/")
-					}
+					Contact = contact
 				});
 
 				x.SwaggerDoc("Users", new OpenApiInfo
@@ -33,12 +35,15 @@ namespace ToDoList.UI.Configurations.ServicesConfigurations
 					Version = "1",
 					Title = "Users API",
 					Description = "The API allows users management",
-					Contact = new OpenApiContact
-					{
-						Name = "Vinício",
-						Email = "vinicio.barreto.santos@gmail.com",
-						Url = new Uri("https://www.linkedin.com/in/vinicio-barreto-santos/")
-					}
+					Contact = contact
+				});
+
+				x.SwaggerDoc("Tasks", new OpenApiInfo
+				{
+					Version = "1",
+					Title = "Tasks API",
+					Description = "The API allows tasks management",
+					Contact = contact
 				});
 
 				x.AddSecurityDefinition("Bearer",

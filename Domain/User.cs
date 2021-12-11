@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Security;
 using TaskComment = Domains.User.Task.TaskComment;
 
@@ -102,12 +103,14 @@ namespace Domains
 
 		public void Deactivate()
 		{
+			if (TargetTasks.Any(x => x.CompletedAt == null)) throw new RuleException("Cannot deactivate account while user still has pending tasks");
+
 			IsActive = false;
 		}
 
 		public void AlterUserRole(User targetUser, UserRole role)
 		{
-			if (this.Role != UserRole.Admin) throw new PermissionException("No rigths to alter roles");
+			if (Role != UserRole.Admin) throw new PermissionException("No rigths to alter roles");
 			if (targetUser == null) throw new MissingArgumentsException(nameof(targetUser));
 			if (this == targetUser) throw new RuleException("Users can't alter its own role");
 			if (role == targetUser.Role) throw new RuleException("Given user has this role already");
@@ -115,7 +118,7 @@ namespace Domains
 			targetUser.Role = role;
 		}
 
-		public Task SetTask(User targetUser, string taskDescription)
+		public Task AssignTask(User targetUser, string taskDescription)
 		{
 			var task = Task.New(this, targetUser, taskDescription);
 

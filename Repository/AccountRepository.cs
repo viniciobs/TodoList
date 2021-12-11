@@ -6,10 +6,11 @@ using Repository.DTOs.Accounts;
 using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
+using Repository._Commom;
 
 namespace Repository
 {
-	public class AccountRepository : Repository, IAccountRepository
+	public class AccountRepository : _Commom.Repository, IAccountRepository
 	{
 		#region Constructor
 

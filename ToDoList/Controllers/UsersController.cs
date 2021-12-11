@@ -7,7 +7,6 @@ using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using ToDoList.UI.Controllers.Base;
 
@@ -71,7 +70,7 @@ namespace ToDoList.UI.Controllers
 					ItemsPerPage = itemsPerPage
 				};
 				
-				var users = await repo.Get(filter);
+				var users = await _userRepo.Get(filter);
 
 				return Ok(users);
 			}
@@ -97,11 +96,11 @@ namespace ToDoList.UI.Controllers
 		[ProducesDefaultResponseType]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(UserResult))]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<ActionResult<UserResult>> Get(Guid id)
 		{
-			UserResult user;
+			UserResult userResult;
 
 			try
 			{
@@ -110,7 +109,9 @@ namespace ToDoList.UI.Controllers
 				if (authenticatedUser.Role != UserRole.Admin)
 					filterOnlyActive = true;
 
-				user = await repo.Find(id, filterOnlyActive);
+				var user = await _userRepo.Find(id, filterOnlyActive);
+
+				userResult = UserResult.Convert(user);
 			}
 			catch (NotFoundException notFoundException)
 			{
@@ -121,7 +122,7 @@ namespace ToDoList.UI.Controllers
 				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}
 
-			return Ok(user);
+			return Ok(userResult);
 		}
 
 		#region Documentation
@@ -157,8 +158,8 @@ namespace ToDoList.UI.Controllers
 					NewRole = targetUserNewRole
 				};
 
-				await repo.AlterUserRole(data);
-				await repo.SaveChangesAsync();
+				await _userRepo.AlterUserRole(data);
+				await _userRepo.SaveChangesAsync();
 			}
 			catch (MissingArgumentsException missingArgumentsException)
 			{

@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace Repository.Interfaces
 {
-	internal interface ITaskRepository : IRepository
+	public interface ITaskRepository : IRepository
 	{
-		public Task AssignTask(AssingTaskData data);
+		public Task<AssignTaskResult> Assign(AssignTaskData data);
 	}
 }

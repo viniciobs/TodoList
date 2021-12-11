@@ -1,8 +1,7 @@
-﻿using Domains.Exceptions;
+﻿using Domains;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Repository.DTOs.Users;
 using Repository.Interfaces;
 using ToDoList.UI.Controllers.Commom;
 
@@ -15,18 +14,18 @@ namespace ToDoList.UI.Controllers.Base
 	{
 		#region Fields
 
-		protected readonly IUserRepository repo;
-		protected UserResult authenticatedUser;
+		protected readonly IUserRepository _userRepo;
+		protected User authenticatedUser;
 
 		#endregion Fields
 
 		#region Constructor
 
-		public ApiControllerBase(IHttpContextAccessor httpContextAccessor, IUserRepository repo)
+		public ApiControllerBase(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo)
 		{
-			this.repo = repo;
+			_userRepo = userRepo;
 
-			authenticatedUser = httpContextAccessor.GetAuthenticatedUser(repo);
+			authenticatedUser = httpContextAccessor.GetAuthenticatedUser(userRepo);
 		}
 
 		#endregion Constructor
