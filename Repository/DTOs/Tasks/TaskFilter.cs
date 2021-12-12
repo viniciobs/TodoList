@@ -10,5 +10,6 @@ namespace Repository.DTOs.Tasks
 		public bool? Completed { get; set; }
 		public Guid? CreatorUser { get; set; }
 		public Guid? TargetUser { get; set; }
+		public FilterHelper UserFilter { get; set; } 
 	}
 }

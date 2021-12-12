@@ -93,7 +93,7 @@ namespace ToDoList.UI.Controllers
 			{
 				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}
-		}
+		}		
 
 		/// <summary>
 		/// Retrives details about a task.
@@ -101,7 +101,7 @@ namespace ToDoList.UI.Controllers
 		/// <param name="targetUserId">User tied to the task</param>
 		/// <param name="id">Task identifier</param>
 		/// <returns></returns>		
-		[Route(BASE_ROUTE + "{id:Guid}")]
+		[Route(BASE_ROUTE + "/{id:Guid}")]
 		[HttpGet]
 		[ProducesDefaultResponseType]
 		[ProducesResponseType(StatusCodes.Status200OK)]
@@ -129,7 +129,18 @@ namespace ToDoList.UI.Controllers
 			}
 		}
 
-		[Route("Tasks")]
+		/// <summary>
+		/// List tasks.
+		/// </summary>
+		/// <param name="completed">If true, filter only completed tasks, otherwise, only pending tasks. Optional.</param>
+		/// <param name="creatorUser">To filter creator user. Optional.</param>
+		/// <param name="targetUser">To filter target user. Optional.</param>
+		/// <param name="start">To filter completed date period. Optional.</param>
+		/// <param name="end">To filter completed date period. Optional.</param>
+		/// <param name="page">Filter page. Optional.</param>
+		/// <param name="itemsPerPage">Items quantity per result. Optional.</param>
+		/// <returns></returns>
+		[Route("Admin/Tasks")]
 		[HttpGet]
 		[Authorize(Roles = "Admin")]
 		[ProducesDefaultResponseType]
@@ -146,6 +157,7 @@ namespace ToDoList.UI.Controllers
 					Completed = completed,
 					CreatorUser = creatorUser,
 					TargetUser = targetUser,
+					UserFilter = FilterHelper.AND,
 					CompletedBetween = new Period(start, end),
 					Page = page,
 					ItemsPerPage = itemsPerPage
@@ -159,6 +171,132 @@ namespace ToDoList.UI.Controllers
 			{
 				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}
+		}
+
+		/// <summary>
+		/// List user taks.
+		/// </summary>
+		/// <param name="completed">If true, filter only completed tasks, otherwise, only pending tasks. Optional.</param>
+		/// <param name="start">To filter completed date period. Optional.</param>
+		/// <param name="end">To filter completed date period. Optional.</param>
+		/// <param name="page">Filter page. Optional.</param>
+		/// <param name="itemsPerPage">Items quantity per result. Optional.</param>
+		/// <returns></returns>
+		[Route("Tasks")]
+		[HttpGet]
+		[ProducesDefaultResponseType]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<ActionResult<PaginationResult<TaskResult>>> Get(bool? completed, DateTime? start, DateTime? end, int page, int itemsPerPage)
+		{
+			try
+			{
+				var filter = new TaskFilter()
+				{
+					Completed = completed,
+					CreatorUser = authenticatedUser.Id,
+					TargetUser = authenticatedUser.Id,
+					UserFilter = FilterHelper.OR,
+					CompletedBetween = new Period(start, end),
+					Page = page,
+					ItemsPerPage = itemsPerPage
+				};
+
+				var result = await _repo.Get(filter);
+
+				return Ok(result);
+			}
+			catch (Exception exception)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+			}
+		}
+
+		/// <summary>
+		/// Finishi a task.
+		/// Only creator or target user can finish a task.
+		/// </summary>
+		/// <param name="id">Task to be finished.</param>
+		[Route("Tasks/{id:Guid}/Finish")]
+		[HttpPatch]
+		[ProducesDefaultResponseType]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<IActionResult> Finish(Guid id)
+		{
+			try
+			{
+				var data = new UserTask()
+				{
+					TaskId = id,
+					User = authenticatedUser
+				};
+
+				await _repo.Finish(data);
+				await _repo.SaveChangesAsync();
+			}
+			catch(PermissionException permissionException)
+			{
+				return StatusCode(StatusCodes.Status403Forbidden, permissionException);
+			}
+			catch (NotFoundException notFoundException)
+			{
+				return NotFound(notFoundException);
+			}
+			catch (Exception exception)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+			}
+
+			return NoContent();
+		}
+
+		/// <summary>
+		/// Reopen a task.
+		/// Only creator or target user can reopen a task.
+		/// </summary>
+		/// <param name="id">Task to be reopened.</param>		
+		[Route("Tasks/{id:Guid}/Reopen")]
+		[HttpPatch]
+		[ProducesDefaultResponseType]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<IActionResult> Reopen(Guid id)
+		{
+			try
+			{
+				var data = new UserTask()
+				{
+					TaskId = id,
+					User = authenticatedUser
+				};
+
+				await _repo.Reopen(data);
+				await _repo.SaveChangesAsync();
+			}
+			catch (PermissionException permissionException)
+			{
+				return StatusCode(StatusCodes.Status403Forbidden, permissionException);
+			}
+			catch (NotFoundException notFoundException)
+			{
+				return NotFound(notFoundException);
+			}
+			catch (Exception exception)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+			}
+
+			return NoContent();
 		}
 
 		#endregion Methods

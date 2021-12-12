@@ -132,7 +132,7 @@ namespace Domains
 		{
 			if (taskToFinish == null) throw new MissingArgumentsException(nameof(taskToFinish));
 
-			var userCanFinish = taskToFinish.CreatorUser == this || taskToFinish.TargetUser == this;
+			var userCanFinish = taskToFinish.CreatorUserId == Id || taskToFinish.TargetUserId == Id;
 			if (!userCanFinish) throw new PermissionException("User has no permission to finish this task");
 
 			taskToFinish.Finish();
@@ -142,7 +142,7 @@ namespace Domains
 		{
 			if (taskToReopen == null) throw new MissingArgumentsException(nameof(taskToReopen));
 
-			var userCanReopen = taskToReopen.CreatorUser == this || taskToReopen.TargetUser == this;
+			var userCanReopen = taskToReopen.CreatorUserId == Id || taskToReopen.TargetUserId == Id;
 			if (!userCanReopen) throw new PermissionException("User has no permission to reopen this task");
 
 			taskToReopen.Reopen();

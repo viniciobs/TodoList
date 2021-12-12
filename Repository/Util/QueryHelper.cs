@@ -1,5 +1,6 @@
 ﻿using Domains;
 using Microsoft.EntityFrameworkCore;
+using Repository.DTOs._Commom;
 using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Tasks;
 using Repository.DTOs.Users;
@@ -53,11 +54,19 @@ namespace Repository.Util
 			if (filterByCompletedPeriod)
 				source = source.Where(x => x.CompletedAt.HasValue && period.IsBetween(x.CompletedAt.Value));
 
-			if (filterByCreatorUser)
-				source = source.Where(x => x.CreatorUserId == filter.CreatorUser);
+			if (filterByCreatorUser && filterByTargetUser && filter.UserFilter == FilterHelper.OR)
+			{
+				source = source.Where(x => x.CreatorUserId == filter.CreatorUser || x.TargetUserId == filter.TargetUser);
+			}
+			else
+			{
+				if (filterByCreatorUser)
+					source = source.Where(x => x.CreatorUserId == filter.CreatorUser);
 
-			if (filterByTargetUser)
-				source = source.Where(x => x.TargetUserId == filter.TargetUser);
+				if (filterByTargetUser)
+					source = source.Where(x => x.TargetUserId == filter.TargetUser);
+			}
+			
 
 			return source;
 		}

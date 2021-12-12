@@ -1,6 +1,7 @@
 ﻿using DataAccess;
 using Domains.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Repository.DTOs._Commom;
 using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Tasks;
 using Repository.Interfaces;
@@ -49,6 +50,14 @@ namespace Repository
 			return TaskResult.Convert(task); 
 		}
 
+		public async Task Finish(UserTask data)
+		{
+			var task = await _db.Task.SingleOrDefaultAsync(x => x.Id == data.TaskId);
+			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
+
+			data.User.FinishTask(task);					
+		}
+
 		public async Task<PaginationResult<TaskResult>> Get(TaskFilter filter)
 		{
 			var query = _db.Task.AsNoTracking().Include(x => x.CreatorUser).Include(x => x.TargetUser).Filter(filter);
@@ -60,6 +69,14 @@ namespace Repository
 				total,
 				tasks.Select(tasks => TaskResult.Convert(tasks))
 			);
+		}
+
+		public async Task Reopen(UserTask data)
+		{
+			var task = await _db.Task.SingleOrDefaultAsync(x => x.Id == data.TaskId);
+			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
+
+			data.User.ReopenTask(task);
 		}
 	}	
 }
