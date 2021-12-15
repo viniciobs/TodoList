@@ -36,8 +36,8 @@ namespace Repository
 
 			await _db.Task.AddAsync(task);
 
-			_db.Entry(data.CreatorUser).State = EntityState.Unchanged;
-			_db.Entry(data.TargetUser).State = EntityState.Unchanged;
+			_db.Entry(data.CreatorUser).State = EntityState.Detached;
+			_db.Entry(data.TargetUser).State = EntityState.Detached;
 
 			return TaskResult.Convert(task);
 		}

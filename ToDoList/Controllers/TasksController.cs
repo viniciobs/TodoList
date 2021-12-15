@@ -1,9 +1,11 @@
-﻿using Domains.Exceptions;
+﻿using Domains;
+using Domains.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Repository.DTOs._Commom;
 using Repository.DTOs._Commom.Pagination;
+using Repository.DTOs.History;
 using Repository.DTOs.Tasks;
 using Repository.Interfaces;
 using System;
@@ -20,11 +22,13 @@ namespace ToDoList.UI.Controllers
 	{
 		private const string BASE_ROUTE = "Users/{targetUserId:Guid}/Tasks";
 		private readonly ITaskRepository _repo;
+		private readonly IHistoryRepository _historyRepository;
 
-		public TasksController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskRepository repo)
+		public TasksController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskRepository repo, IHistoryRepository historyRepository)
 			: base(httpContextAccessor, userRepo)
 		{
 			_repo = repo;
+			_historyRepository = historyRepository;
 		}
 
 		/// <summary>
@@ -44,7 +48,7 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status409Conflict)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<TaskResult>> New([FromRoute] Guid targetUserId, [FromBody] string description)
+		public async Task<ActionResult<TaskResult>> AssignTo([FromRoute] Guid targetUserId, [FromBody] string description)
 		{		
 			try
 			{
@@ -59,6 +63,15 @@ namespace ToDoList.UI.Controllers
 
 				var result = await _repo.Assign(assignData);
 				await _repo.SaveChangesAsync();
+
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.AssignedTask,
+					Content = new { TargetUserId = targetUserId, Description = description}
+				};
+
+				_historyRepository.AddHistory(historyData);
 
 				return StatusCode(StatusCodes.Status201Created, result);
 			}
@@ -101,6 +114,15 @@ namespace ToDoList.UI.Controllers
 			try
 			{
 				var result = await _repo.Find(targetUserId, id);
+
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.ListedTasks,
+					Content = new { TargetUserId = targetUserId, TaskId = id }
+				};
+
+				_historyRepository.AddHistory(historyData);
 
 				return Ok(result);
 			}
@@ -150,6 +172,15 @@ namespace ToDoList.UI.Controllers
 
 				var result = await _repo.Get(filter);
 
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.ListedTasks,
+					Content = new { Filter = filter }
+				};
+
+				_historyRepository.AddHistory(historyData);
+
 				return Ok(result);
 			}
 			catch (Exception exception)
@@ -192,6 +223,15 @@ namespace ToDoList.UI.Controllers
 
 				var result = await _repo.Get(filter);
 
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.ListedTasks,
+					Content = new { Filter = filter }
+				};
+
+				_historyRepository.AddHistory(historyData);
+
 				return Ok(result);
 			}
 			catch (Exception exception)
@@ -225,8 +265,18 @@ namespace ToDoList.UI.Controllers
 
 				await _repo.Finish(data);
 				await _repo.SaveChangesAsync();
+
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.FinishedTask,
+					Content = new { TaskId = id }
+				};
+
+				_historyRepository.AddHistory(historyData);
+
 			}
-			catch(PermissionException permissionException)
+			catch (PermissionException permissionException)
 			{
 				return StatusCode(StatusCodes.Status403Forbidden, permissionException);
 			}
@@ -267,6 +317,16 @@ namespace ToDoList.UI.Controllers
 
 				await _repo.Reopen(data);
 				await _repo.SaveChangesAsync();
+
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.ReopenedTask,
+					Content = new { TaskId = id }
+				};
+
+				_historyRepository.AddHistory(historyData);
+
 			}
 			catch (PermissionException permissionException)
 			{

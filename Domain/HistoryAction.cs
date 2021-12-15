@@ -12,6 +12,6 @@
 		AssignedTask = 7,
 		FinishedTask = 8,
 		ReopenedTask = 9,
-		ListedTask = 10
+		ListedTasks = 10
 	}
 }
