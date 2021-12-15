@@ -1,10 +1,12 @@
-﻿using Domains.Exceptions;
+﻿using Domains;
+using Domains.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Repository.DTOs.Accounts;
+using Repository.DTOs.History;
 using Repository.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;
@@ -32,17 +34,19 @@ namespace ToDoList.UI.Controllers
 	{
 		#region Fields
 
-		private readonly IAccountRepository repo;
-		private readonly Authentication authentication;
+		private readonly IAccountRepository _repo;
+		private readonly IHistoryRepository _historyRepo;
+		private readonly Authentication _authentication;
 
 		#endregion Fields
 
 		#region Constructor
 
-		public AccountsController(IAccountRepository repo, IOptions<Authentication> authentication)
+		public AccountsController(IAccountRepository repo, IHistoryRepository historyRepo, IOptions<Authentication> authentication)
 		{
-			this.repo = repo;
-			this.authentication = authentication.Value;
+			_repo = repo;
+			_historyRepo = historyRepo;
+			_authentication = authentication.Value;
 		}
 
 		#endregion Constructor
@@ -81,7 +85,7 @@ namespace ToDoList.UI.Controllers
 
 			try
 			{
-				authenticationResult = await repo.Authenticate(data);
+				authenticationResult = await _repo.Authenticate(data);
 			}
 			catch (MissingArgumentsException missingArgumentException)
 			{
@@ -99,14 +103,14 @@ namespace ToDoList.UI.Controllers
 			try
 			{
 				var tokenHandler = new JwtSecurityTokenHandler();
-				var key = Encoding.UTF8.GetBytes(authentication.Secret);
+				var key = Encoding.UTF8.GetBytes(_authentication.Secret);
 
 				var tokenDescriptor = new SecurityTokenDescriptor
 				{
 					Subject = new ClaimsIdentity(new Claim[]
 					{
-					new Claim(ClaimTypes.Sid, authenticationResult.UserId.ToString()),
-					new Claim(ClaimTypes.Role, authenticationResult.Role.ToString())
+						new Claim(ClaimTypes.Sid, authenticationResult.UserId.ToString()),
+						new Claim(ClaimTypes.Role, authenticationResult.Role.ToString())
 					}),
 					Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
 					SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -114,6 +118,16 @@ namespace ToDoList.UI.Controllers
 
 				var token = tokenHandler.CreateToken(tokenDescriptor);
 				authenticationResult.Token = tokenHandler.WriteToken(token);
+
+				await _repo.SaveChangesAsync();
+
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticationResult.UserId,
+					Action = HistoryAction.Authenticated
+				};
+
+				_historyRepo.AddHistory(historyData);
 
 				return Ok(authenticationResult);
 			}
@@ -144,8 +158,8 @@ namespace ToDoList.UI.Controllers
 		{
 			try
 			{
-				await repo.Create(data);
-				await repo.SaveChangesAsync();
+				await _repo.Create(data);
+				await _repo.SaveChangesAsync();
 			}
 			catch (RuleException ruleException)
 			{
@@ -210,8 +224,8 @@ namespace ToDoList.UI.Controllers
 
 			try
 			{
-				await repo.ChangePassword(id, data);
-				await repo.SaveChangesAsync();
+				await _repo.ChangePassword(id, data);
+				await _repo.SaveChangesAsync();
 			}
 			catch (MissingArgumentsException missingArgumentsException)
 			{
@@ -225,6 +239,14 @@ namespace ToDoList.UI.Controllers
 			{
 				return StatusCode(StatusCodes.Status500InternalServerError, exception);
 			}
+
+			var historyData = new AddHistoryData()
+			{
+				UserId = authenticatedUser.Id,
+				Action = HistoryAction.PasswordChanged
+			};
+
+			_historyRepo.AddHistory(historyData);
 
 			return NoContent();
 		}
@@ -249,12 +271,28 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> Delete([FromRoute] Guid id)
+		public async Task<IActionResult> Delete(
+			[FromRoute] Guid id,
+			[FromServices] IHttpContextAccessor httpContextAccessor,
+			[FromServices] IUserRepository userRepository)
 		{
 			try
 			{
-				await repo.Delete(id);
-				await repo.SaveChangesAsync();
+				var authenticatedUser = httpContextAccessor.GetAuthenticatedUser(userRepository);
+				if (authenticatedUser == null) return Unauthorized();
+
+				await _repo.Delete(id);
+				await _repo.SaveChangesAsync();
+
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.DeletedAccount,
+					Content = new { deleted = id }
+				};
+
+				_historyRepo.AddHistory(historyData);
+
 			}
 			catch (NotFoundException notFoundException)
 			{
@@ -316,8 +354,16 @@ namespace ToDoList.UI.Controllers
 
 			try
 			{
-				await repo.AlterStatus(authenticatedUser.Id, true);
-				await repo.SaveChangesAsync();
+				await _repo.AlterStatus(authenticatedUser.Id, true);
+				await _repo.SaveChangesAsync();
+
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.ActivatedAccount
+				};
+
+				_historyRepo.AddHistory(historyData);
 			}
 			catch(Exception exception)
 			{
@@ -348,8 +394,16 @@ namespace ToDoList.UI.Controllers
 
 			try
 			{
-				await repo.AlterStatus(authenticatedUser.Id, false);
-				await repo.SaveChangesAsync();
+				await _repo.AlterStatus(authenticatedUser.Id, false);
+				await _repo.SaveChangesAsync();
+
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.DeactivatedAccount
+				};
+
+				_historyRepo.AddHistory(historyData);
 			}
 			catch(RuleException ruleException)
 			{

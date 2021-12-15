@@ -12,6 +12,7 @@ namespace DataAccess
 		public DbSet<User> User { get; set; }
 		public DbSet<Task> Task { get; set; }
 		public DbSet<TaskComment> TaskComment { get; set; }
+		public DbSet<History> History { get; set; }
 
 		#endregion Properties
 

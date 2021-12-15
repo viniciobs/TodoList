@@ -1,3 +1,4 @@
+using DataAccess;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -36,8 +37,10 @@ namespace ToDoList.UI
 
 		public void ConfigureServices(IServiceCollection services)
 		{
+			string connectionString = configuration.GetConnectionString("ToDoListDB");
+			
 			services.AddDbContext<DataAccess.ApplicationContext>(
-				options => options.UseSqlServer(configuration.GetConnectionString("ToDoListDB"))
+				options => options.UseSqlServer(connectionString)
 			);
 
 			services.AddResponseCompression(options =>
@@ -53,7 +56,8 @@ namespace ToDoList.UI
 			services.AddScoped<IAccountRepository, AccountRepository>();
 			services.AddScoped<IUserRepository, UserRepository>();
 			services.AddScoped<ITaskRepository, TaskRepository>();
-			services.AddSingleton<IPaginationRepository, PaginationRepository>();
+			services.AddSingleton<IPaginationRepository, PaginationRepository>();			
+			services.AddScoped<IHistoryRepository>(x => new HistoryRepository(x.GetRequiredService<ApplicationContext>(), connectionString));
 
 			services.AddJwtAuthentication(configuration.GetSection("Authentication"));
 			services.AddSwagger(configuration);

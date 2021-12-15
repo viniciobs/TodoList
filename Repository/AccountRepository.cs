@@ -55,7 +55,7 @@ namespace Repository
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (string.IsNullOrEmpty(data.Name)) throw new MissingArgumentsException(nameof(data.Name));
-			if (string.IsNullOrEmpty(data.Login)) throw new MissingArgumentsException(nameof(data.Login));
+			if (string.IsNullOrEmpty(data.Login.Trim())) throw new MissingArgumentsException(nameof(data.Login));
 			if (string.IsNullOrEmpty(data.Password)) throw new MissingArgumentsException(nameof(data.Password));
 
 			var loginExists = await _db.User.AnyAsync(x => x.Login == data.Login);
