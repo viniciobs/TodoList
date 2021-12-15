@@ -8,9 +8,7 @@ namespace Domains
 	public partial class User
 	{
 		public partial class Task
-		{
-			#region Properties
-
+		{		
 			public Guid Id { get; private set; }
 			public string Description { get; private set; }
 			public DateTime CreatedAt { get; private set; }
@@ -22,10 +20,6 @@ namespace Domains
 
 			[NotMapped]
 			public ICollection<TaskComment> Comments { get; private set; }
-
-			#endregion Properties
-
-			#region Constructor
 
 			private Task()
 			{ }
@@ -45,10 +39,6 @@ namespace Domains
 
 				Comments = new HashSet<TaskComment>();
 			}
-
-			#endregion Constructor
-
-			#region Methods
 
 			internal static Task New(User creator, User target, string description)
 			{
@@ -75,8 +65,6 @@ namespace Domains
 
 				Comments.Add(comment);
 			}
-
-			#endregion Methods
 		}
 	}
 }

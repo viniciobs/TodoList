@@ -17,30 +17,19 @@ using ToDoList.UI.Configurations;
 using ToDoList.UI.Controllers.Commom;
 
 namespace ToDoList.UI.Controllers
-{
-	#region Documentation
-
+{	
 	/// <summary>
 	/// Responsible class for account management
 	/// </summary>
-
-	#endregion Documentation
-
 	[Produces("application/json")]
 	[Route("accounts")]
 	[ApiController]
 	[ApiExplorerSettings(GroupName = "Accounts")]
 	public class AccountsController : ControllerBase
 	{
-		#region Fields
-
 		private readonly IAccountRepository _repo;
 		private readonly IHistoryRepository _historyRepo;
 		private readonly Authentication _authentication;
-
-		#endregion Fields
-
-		#region Constructor
 
 		public AccountsController(IAccountRepository repo, IHistoryRepository historyRepo, IOptions<Authentication> authentication)
 		{
@@ -49,21 +38,12 @@ namespace ToDoList.UI.Controllers
 			_authentication = authentication.Value;
 		}
 
-		#endregion Constructor
-
-		#region Methods
-
-		#region Documentation
-
 		/// <summary>
 		/// Identify, authenticate and generate a token to a user.
 		/// The token will be available for the next 30 minutes.
 		/// </summary>
 		/// <param name="data">Necessary data to authenticate.</param>
 		/// <returns>If authenticated, return the user data.</returns>
-
-		#endregion Documentation
-
 		[HttpPost]
 		[Route("Authenticate")]
 		[ProducesDefaultResponseType]
@@ -137,16 +117,11 @@ namespace ToDoList.UI.Controllers
 			}
 		}
 
-		#region Documentation
-
 		/// <summary>
 		/// Validate, create and authenticate a new account.
 		/// </summary>
 		/// <param name="data">Necessary data to create an account.</param>
 		/// <returns>Account details.</returns>
-
-		#endregion Documentation
-
 		[HttpPost]
 		[Route("New")]
 		[ProducesDefaultResponseType]
@@ -185,16 +160,11 @@ namespace ToDoList.UI.Controllers
 			return StatusCode(StatusCodes.Status201Created, result);
 		}
 
-		#region Documentation
-
 		/// <summary>
 		/// Change a user password.
 		/// </summary>
 		/// <param name="id">The target user id.</param>
 		/// <param name="data">Necessary data to change the user's password.</param>
-
-		#endregion Documentation
-
 		[Authorize]
 		[HttpPatch]
 		[Route("{id:Guid}/ChangePassword")]
@@ -251,16 +221,11 @@ namespace ToDoList.UI.Controllers
 			return NoContent();
 		}
 
-		#region Documentation
-
 		/// <summary>
 		/// Delete a user.
 		/// Only users with admin roles can delete a user.
 		/// </summary>
 		/// <param name="id">User id.</param>
-
-		#endregion Documentation
-
 		[Authorize]
 		[HttpDelete]
 		[Route("{id:Guid}")]
@@ -416,7 +381,5 @@ namespace ToDoList.UI.Controllers
 
 			return NoContent();
 		}
-
-		#endregion Methods
 	}
 }

@@ -11,6 +11,7 @@
 		AlteredUserRole = 6,
 		AssignedTask = 7,
 		FinishedTask = 8,
-		ReopenedTask = 9
+		ReopenedTask = 9,
+		ListedTask = 10
 	}
 }

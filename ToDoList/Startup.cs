@@ -18,22 +18,12 @@ namespace ToDoList.UI
 {
 	public class Startup
 	{
-		#region Fields
-
 		private IConfiguration configuration { get; }
-
-		#endregion Fields
-
-		#region Constructor
 
 		public Startup(IConfiguration configuration)
 		{
 			this.configuration = configuration;
 		}
-
-		#endregion Constructor
-
-		#region Methods
 
 		public void ConfigureServices(IServiceCollection services)
 		{
@@ -87,7 +77,5 @@ namespace ToDoList.UI
 
 			app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 		}
-
-		#endregion Methods
 	}
 }

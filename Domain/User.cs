@@ -9,8 +9,6 @@ namespace Domains
 {
 	public partial class User
 	{
-		#region Properties
-
 		public Guid Id { get; private set; }
 		public string Name { get; private set; }
 		public string Login { get; private set; }
@@ -28,10 +26,6 @@ namespace Domains
 		[NotMapped]
 		public ICollection<TaskComment> TaskComments { get; private set; }
 
-		#endregion Properties
-
-		#region Constructor
-
 		private User()
 		{
 			CreatedAt = DateTime.UtcNow;
@@ -40,10 +34,6 @@ namespace Domains
 			CreatedTasks = new HashSet<Task>();
 			TaskComments = new HashSet<TaskComment>();
 		}
-
-		#endregion Constructor
-
-		#region Methods
 
 		public static User New(string name, string login)
 		{
@@ -61,18 +51,13 @@ namespace Domains
 			return user;
 		}
 
-#if DEBUG
-
-		#region Documentation
+#if DEBUG		
 
 		/// <summary>
 		/// Generate a user instance with admin role.
 		/// Must only be used for tests purposes.
 		/// </summary>
 		/// <returns>Admins user.</returns>
-
-		#endregion Documentation
-
 		public static User NewAdmin()
 		{
 			var admin = new User()
@@ -155,8 +140,6 @@ namespace Domains
 			if (!userCanComment) throw new PermissionException("User has no permission to comment this task");
 
 			task.AddComment(this, comment);
-		}
-
-		#endregion Methods
+		}		
 	}
 }

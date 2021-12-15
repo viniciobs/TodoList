@@ -10,8 +10,6 @@ namespace Domains
 		{
 			public class TaskComment
 			{
-				#region Properties
-
 				public Guid Id { get; private set; }
 				public string Text { get; private set; }
 				public Guid TaskId { get; private set; }
@@ -19,10 +17,6 @@ namespace Domains
 				public Guid CreatedByUserId { get; private set; }
 				public User CreatedBy { get; private set; }
 				public DateTime CreatedAt { get; private set; }
-
-				#endregion Properties
-
-				#region Constructor
 
 				public TaskComment()
 				{ }
@@ -41,16 +35,10 @@ namespace Domains
 					CreatedAt = DateTime.UtcNow;
 				}
 
-				#endregion Constructor
-
-				#region Methods
-
 				internal static TaskComment New(Task task, User creator, string text)
 				{
 					return new TaskComment(task, creator, text);
 				}
-
-				#endregion Methods
 			}
 		}
 	}

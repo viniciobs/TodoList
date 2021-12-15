@@ -12,14 +12,8 @@ namespace ToDoList.UI.Controllers.Base
 	[Produces("application/json")]
 	public class ApiControllerBase : ControllerBase
 	{
-		#region Fields
-
 		protected readonly IUserRepository _userRepo;
 		protected User authenticatedUser;
-
-		#endregion Fields
-
-		#region Constructor
 
 		public ApiControllerBase(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo)
 		{
@@ -27,7 +21,5 @@ namespace ToDoList.UI.Controllers.Base
 
 			authenticatedUser = httpContextAccessor.GetAuthenticatedUser(userRepo);
 		}
-
-		#endregion Constructor
 	}
 }

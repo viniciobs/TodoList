@@ -12,35 +12,20 @@ using ToDoList.UI.Controllers.Base;
 
 namespace ToDoList.UI.Controllers
 {
-	#region Documentation
-
 	/// <summary>
 	/// Responsible class for tasks management.
 	/// </summary>
-
-	#endregion Documentation
-			
 	[ApiExplorerSettings(GroupName = "Tasks")]
 	public class TasksController : ApiControllerBase
 	{
-		#region Properties
-
 		private const string BASE_ROUTE = "Users/{targetUserId:Guid}/Tasks";
 		private readonly ITaskRepository _repo;
-
-		#endregion Properties
-
-		#region Constructor
 
 		public TasksController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskRepository repo)
 			: base(httpContextAccessor, userRepo)
 		{
 			_repo = repo;
 		}
-
-		#endregion Constructor
-
-		#region Methods
 
 		/// <summary>
 		/// Creates and sets a task to a given user.
@@ -298,7 +283,5 @@ namespace ToDoList.UI.Controllers
 
 			return NoContent();
 		}
-
-		#endregion Methods
 	}
 }
