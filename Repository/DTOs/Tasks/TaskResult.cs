@@ -9,6 +9,7 @@ namespace Repository.DTOs.Tasks
 		public string Description { get;  set; }
 		public UserResult TargetUser { get; set; }
 		public UserResult CreatorUser { get; set; }
+		public DateTime? CompletedAt { get; set; }
 
 		public static TaskResult Convert(Domains.User.Task task)
 		{
@@ -17,7 +18,8 @@ namespace Repository.DTOs.Tasks
 				Id = task.Id,
 				Description = task.Description,
 				TargetUser = UserResult.Convert(task.TargetUser),
-				CreatorUser = UserResult.Convert(task.CreatorUser)
+				CreatorUser = UserResult.Convert(task.CreatorUser),
+				CompletedAt = task.CompletedAt
 			};
 		}
 	}
