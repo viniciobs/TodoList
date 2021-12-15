@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Repository.DTOs._Commom.Pagination;
+using Repository.DTOs.History;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
 using System;
@@ -12,30 +13,20 @@ using ToDoList.UI.Controllers.Base;
 
 namespace ToDoList.UI.Controllers
 {
-	#region Documentation
-
 	/// <summary>
 	/// Responsible class for users management.
 	/// </summary>
-
-	#endregion Documentation
-
 	[Route("Users")]
 	[ApiExplorerSettings(GroupName = "Users")]
 	public class UsersController : ApiControllerBase
 	{
-		#region Constructor
+		private readonly IHistoryRepository _historyRepository;
 
-		public UsersController(IHttpContextAccessor httpContextAccessor, IUserRepository repo)
+		public UsersController(IHttpContextAccessor httpContextAccessor, IUserRepository repo, IHistoryRepository historyRepository)
 			: base(httpContextAccessor, repo)
 		{
-		}
-
-		#endregion Constructor
-
-		#region Methods
-
-		#region Documentation
+			_historyRepository = historyRepository;
+		}		
 
 		/// <summary>
 		/// List users.
@@ -46,10 +37,7 @@ namespace ToDoList.UI.Controllers
 		/// <param name="active">Filter active status. Optional and only admin users can use this param.</param>
 		/// <param name="page">Filter page.</param>
 		/// <param name="itemsPerPage">Items quantity per result.</param>
-		/// <returns>A list of users.</returns>
-
-		#endregion Documentation
-		
+		/// <returns>A list of users.</returns>		
 		[HttpGet]
 		[ProducesDefaultResponseType]
 		[ProducesResponseType(StatusCodes.Status200OK)]
@@ -72,6 +60,15 @@ namespace ToDoList.UI.Controllers
 				
 				var users = await _userRepo.Get(filter);
 
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.ListedUsers,
+					Content = new { Filter = filter }
+				};
+
+				_historyRepository.AddHistory(historyData);
+
 				return Ok(users);
 			}
 			catch (Exception exception)
@@ -80,17 +77,12 @@ namespace ToDoList.UI.Controllers
 			}
 		}
 
-		#region Documentation
-
 		/// <summary>
 		/// Show details of a specific user.
 		/// Only admins can see details of a deactivated user.
 		/// </summary>
 		/// <param name="id">User id.</param>
 		/// <returns>User details.</returns>
-
-		#endregion Documentation
-
 		[HttpGet]
 		[Route("{id:Guid}")]
 		[ProducesDefaultResponseType]
@@ -112,6 +104,15 @@ namespace ToDoList.UI.Controllers
 				var user = await _userRepo.Find(id, filterOnlyActive);
 
 				userResult = UserResult.Convert(user);
+
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.ListedUsers,
+					Content = new { Id = id }
+				};
+
+				_historyRepository.AddHistory(historyData);
 			}
 			catch (NotFoundException notFoundException)
 			{
@@ -125,8 +126,6 @@ namespace ToDoList.UI.Controllers
 			return Ok(userResult);
 		}
 
-		#region Documentation
-
 		/// <summary>
 		/// Alter a user role.
 		/// Only admin can alter users role.
@@ -134,9 +133,6 @@ namespace ToDoList.UI.Controllers
 		/// </summary>
 		/// <param name="targetUserid">The identifier of the target user.</param>
 		/// <param name="targetUserNewRole">The new role of the target user.</param>
-
-		#endregion Documentation
-
 		[HttpPatch]
 		[Route("{targetUserid:Guid}/AlterRole")]
 		[Authorize(Roles = "Admin")]
@@ -160,6 +156,15 @@ namespace ToDoList.UI.Controllers
 
 				await _userRepo.AlterUserRole(data);
 				await _userRepo.SaveChangesAsync();
+
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.AlteredUserRole,
+					Content = new { TargetUserId = targetUserid, NewRole = targetUserNewRole }
+				};
+
+				_historyRepository.AddHistory(historyData);
 			}
 			catch (MissingArgumentsException missingArgumentsException)
 			{
@@ -184,7 +189,5 @@ namespace ToDoList.UI.Controllers
 
 			return NoContent();
 		}
-
-		#endregion Methods
 	}
 }
