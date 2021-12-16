@@ -1,8 +1,8 @@
-﻿using System.Security;
+﻿using System;
 
 namespace Domains.Exceptions
 {
-	public class PermissionException : SecurityException
+	public class PermissionException : Exception
 	{
 		#region Constructors
 

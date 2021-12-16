@@ -10,6 +10,7 @@ using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
 using ToDoList.UI.Controllers.Base;
+using ToDoList.UI.Controllers.Commom;
 
 namespace ToDoList.UI.Controllers
 {
@@ -73,7 +74,8 @@ namespace ToDoList.UI.Controllers
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
 		}
 
@@ -91,9 +93,7 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<ActionResult<UserResult>> Get(Guid id)
-		{
-			UserResult userResult;
-
+		{		
 			try
 			{
 				bool? filterOnlyActive = null;
@@ -103,7 +103,7 @@ namespace ToDoList.UI.Controllers
 
 				var user = await _userRepo.Find(id, filterOnlyActive);
 
-				userResult = UserResult.Convert(user);
+				UserResult userResult = UserResult.Convert(user);
 
 				var historyData = new AddHistoryData()
 				{
@@ -113,17 +113,14 @@ namespace ToDoList.UI.Controllers
 				};
 
 				_historyRepository.AddHistory(historyData);
-			}
-			catch (NotFoundException notFoundException)
-			{
-				return NotFound(notFoundException);
+
+				return Ok(userResult);
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
-			}
-
-			return Ok(userResult);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
+			}			
 		}
 
 		/// <summary>
@@ -165,29 +162,14 @@ namespace ToDoList.UI.Controllers
 				};
 
 				_historyRepository.AddHistory(historyData);
-			}
-			catch (MissingArgumentsException missingArgumentsException)
-			{
-				return BadRequest(missingArgumentsException);
-			}
-			catch (NotFoundException notFoundException)
-			{
-				return NotFound(notFoundException);
-			}
-			catch (PermissionException permissionException)
-			{
-				return StatusCode(StatusCodes.Status403Forbidden, permissionException);
-			}
-			catch (RuleException ruleException)
-			{
-				return Conflict(ruleException);
+
+				return NoContent();
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
-			}
-
-			return NoContent();
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
+			}			
 		}
 	}
 }

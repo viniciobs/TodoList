@@ -67,17 +67,10 @@ namespace ToDoList.UI.Controllers
 			{
 				authenticationResult = await _repo.Authenticate(data);
 			}
-			catch (MissingArgumentsException missingArgumentException)
-			{
-				return BadRequest(missingArgumentException);
-			}
-			catch (NotFoundException notFoundException)
-			{
-				return NotFound(notFoundException);
-			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
 
 			try
@@ -113,7 +106,8 @@ namespace ToDoList.UI.Controllers
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
 		}
 
@@ -136,17 +130,10 @@ namespace ToDoList.UI.Controllers
 				await _repo.Create(data);
 				await _repo.SaveChangesAsync();
 			}
-			catch (RuleException ruleException)
-			{
-				return UnprocessableEntity(ruleException);
-			}
-			catch (MissingArgumentsException missingArgumentsException)
-			{
-				return BadRequest(missingArgumentsException);
-			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
 
 			var authenticationData = new AuthenticationData()
@@ -182,10 +169,6 @@ namespace ToDoList.UI.Controllers
 			[FromServices] IUserRepository userRepository
 			)
 		{
-			if (data == null) return BadRequest(nameof(data));
-			if (string.IsNullOrEmpty(data.OldPassword)) return BadRequest(nameof(data.OldPassword));
-			if (string.IsNullOrEmpty(data.NewPassword)) return BadRequest(nameof(data.NewPassword));
-
 			var authenticatedUser = httpContextAccessor.GetAuthenticatedUser(userRepository);
 			if (authenticatedUser == null) return Unauthorized();
 
@@ -196,29 +179,22 @@ namespace ToDoList.UI.Controllers
 			{
 				await _repo.ChangePassword(id, data);
 				await _repo.SaveChangesAsync();
-			}
-			catch (MissingArgumentsException missingArgumentsException)
-			{
-				return BadRequest(missingArgumentsException);
-			}
-			catch (NotFoundException notFoundException)
-			{
-				return NotFound(notFoundException);
+
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.PasswordChanged
+				};
+
+				_historyRepo.AddHistory(historyData);
+
+				return NoContent();
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
-			}
-
-			var historyData = new AddHistoryData()
-			{
-				UserId = authenticatedUser.Id,
-				Action = HistoryAction.PasswordChanged
-			};
-
-			_historyRepo.AddHistory(historyData);
-
-			return NoContent();
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
+			}			
 		}
 
 		/// <summary>
@@ -259,13 +235,10 @@ namespace ToDoList.UI.Controllers
 				_historyRepo.AddHistory(historyData);
 
 			}
-			catch (NotFoundException notFoundException)
-			{
-				return NotFound(notFoundException);
-			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
 
 			#region TODO
@@ -329,13 +302,14 @@ namespace ToDoList.UI.Controllers
 				};
 
 				_historyRepo.AddHistory(historyData);
+			
+				return NoContent();
 			}
-			catch(Exception exception)
+			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
-
-			return NoContent();
 		}
 
 		/// <summary>
@@ -369,17 +343,14 @@ namespace ToDoList.UI.Controllers
 				};
 
 				_historyRepo.AddHistory(historyData);
-			}
-			catch(RuleException ruleException)
-			{
-				return UnprocessableEntity(ruleException);
+				
+				return NoContent();
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
-
-			return NoContent();
 		}
 	}
 }

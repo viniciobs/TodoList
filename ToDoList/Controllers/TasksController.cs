@@ -11,6 +11,7 @@ using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
 using ToDoList.UI.Controllers.Base;
+using ToDoList.UI.Controllers.Commom;
 
 namespace ToDoList.UI.Controllers
 {
@@ -75,21 +76,10 @@ namespace ToDoList.UI.Controllers
 
 				return StatusCode(StatusCodes.Status201Created, result);
 			}
-			catch(PermissionException permissionException)
+			catch (Exception exception)
 			{
-				return Unauthorized(permissionException);
-			}
-			catch(MissingArgumentsException missingArgumentsException)
-			{
-				return BadRequest(missingArgumentsException);
-			}	
-			catch(NotFoundException notfoundException)
-			{
-				return NotFound(notfoundException);
-			}
-			catch(Exception exception)
-			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
 		}		
 
@@ -126,13 +116,10 @@ namespace ToDoList.UI.Controllers
 
 				return Ok(result);
 			}
-			catch (NotFoundException notfoundException)
-			{
-				return NotFound(notfoundException);
-			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
 		}
 
@@ -185,7 +172,8 @@ namespace ToDoList.UI.Controllers
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
 		}
 
@@ -236,7 +224,8 @@ namespace ToDoList.UI.Controllers
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
 		}
 
@@ -274,22 +263,15 @@ namespace ToDoList.UI.Controllers
 				};
 
 				_historyRepository.AddHistory(historyData);
-
-			}
-			catch (PermissionException permissionException)
-			{
-				return StatusCode(StatusCodes.Status403Forbidden, permissionException);
-			}
-			catch (NotFoundException notFoundException)
-			{
-				return NotFound(notFoundException);
+			
+				return NoContent();
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
 
-			return NoContent();
 		}
 
 		/// <summary>
@@ -326,22 +308,15 @@ namespace ToDoList.UI.Controllers
 				};
 
 				_historyRepository.AddHistory(historyData);
+			
+				return NoContent();
 
-			}
-			catch (PermissionException permissionException)
-			{
-				return StatusCode(StatusCodes.Status403Forbidden, permissionException);
-			}
-			catch (NotFoundException notFoundException)
-			{
-				return NotFound(notFoundException);
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
-
-			return NoContent();
 		}
 
 		/// <summary>
@@ -361,8 +336,6 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<ActionResult<TaskCommentResult>> AddComment([FromRoute] Guid id, [FromBody] string comment)
 		{
-			TaskCommentResult result;
-
 			try
 			{								
 				TaskCommentData data = new TaskCommentData()
@@ -372,7 +345,7 @@ namespace ToDoList.UI.Controllers
 					User = authenticatedUser
 				};
 
-				result = await _repo.AddComment(data);
+				TaskCommentResult result = await _repo.AddComment(data);
 				await _repo.SaveChangesAsync();
 
 				var historyData = new AddHistoryData()
@@ -384,21 +357,13 @@ namespace ToDoList.UI.Controllers
 
 				_historyRepository.AddHistory(historyData);
 
-			}
-			catch (MissingArgumentsException missingArgumentsException)
-			{
-				return StatusCode(StatusCodes.Status400BadRequest, missingArgumentsException);
-			}
-			catch(PermissionException permissionException)
-			{
-				return StatusCode(StatusCodes.Status403Forbidden, permissionException);
+				return StatusCode(StatusCodes.Status201Created, result);	
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
 			}
-
-			return StatusCode(StatusCodes.Status201Created, result);
 		}
 
 		/// <summary>
@@ -440,13 +405,13 @@ namespace ToDoList.UI.Controllers
 
 				_historyRepository.AddHistory(historyData);
 
+				return Ok(result);
 			}
 			catch (Exception exception)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, exception);
-			}
-
-			return Ok(result);
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
+			}			
 		}
 	}
 }

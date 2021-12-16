@@ -26,7 +26,7 @@ namespace Repository
 		public async Task<TaskCommentResult> AddComment(TaskCommentData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
-			if (data.User == null) throw new PermissionException("Missing autenticated user");
+			if (data.User == null) throw new MissingArgumentsException(nameof(data.User));
 			if (data.TaskId == null) throw new MissingArgumentsException(nameof(data.TaskId));
 			if (string.IsNullOrEmpty(data.Comment.Trim())) throw new MissingArgumentsException(nameof(data.Comment));
 
@@ -47,7 +47,7 @@ namespace Repository
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (string.IsNullOrEmpty(data.Description)) throw new MissingArgumentsException(nameof(data.Description));
-			if (data.CreatorUser == null) throw new PermissionException("It's necessary to be authenticated");
+			if (data.CreatorUser == null) throw new MissingArgumentsException(nameof(data.CreatorUser));
 			if (data.TargetUser == null) throw new NotFoundException("Target user was not found");
 			if (!data.CreatorUser.IsActive) throw new RuleException("To assign task, the user must be active");
 			if (!data.TargetUser.IsActive) throw new RuleException("Tasks can be assigned to active users only");
