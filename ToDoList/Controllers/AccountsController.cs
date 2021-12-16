@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Repository.DTOs.Accounts;
 using Repository.DTOs.History;
+using Repository.DTOs.Users;
 using Repository.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;
@@ -52,15 +53,7 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<ActionResult<AuthenticationResult>> Authenticate(AuthenticationData data)
-		{
-			if (data == null || string.IsNullOrEmpty(data.Login) || string.IsNullOrEmpty(data.Password))
-				return BadRequest("Authentication data not received correctly");
-
-			var expireMinutes = 30;
-
-#if DEBUG
-			expireMinutes = 60 * 24;
-#endif
+		{			
 			AuthenticationResult authenticationResult;
 
 			try
@@ -77,7 +70,11 @@ namespace ToDoList.UI.Controllers
 			{
 				var tokenHandler = new JwtSecurityTokenHandler();
 				var key = Encoding.UTF8.GetBytes(_authentication.Secret);
+				var expireMinutes = 30;
 
+#if DEBUG
+				expireMinutes = 60 * 24;
+#endif
 				var tokenDescriptor = new SecurityTokenDescriptor
 				{
 					Subject = new ClaimsIdentity(new Claim[]
@@ -150,11 +147,10 @@ namespace ToDoList.UI.Controllers
 		/// <summary>
 		/// Change a user password.
 		/// </summary>
-		/// <param name="id">The target user id.</param>
 		/// <param name="data">Necessary data to change the user's password.</param>
 		[Authorize]
 		[HttpPatch]
-		[Route("{id:Guid}/ChangePassword")]
+		[Route("ChangePassword")]
 		[ProducesDefaultResponseType]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -163,21 +159,16 @@ namespace ToDoList.UI.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<IActionResult> ChangePassword(
-			[FromRoute] Guid id,
 			[FromBody] ChangePasswordData data,
 			[FromServices] IHttpContextAccessor httpContextAccessor,
 			[FromServices] IUserRepository userRepository
 			)
 		{
-			var authenticatedUser = httpContextAccessor.GetAuthenticatedUser(userRepository);
-			if (authenticatedUser == null) return Unauthorized();
-
-			if (id != authenticatedUser.Id)
-				return Conflict(new Exception("The given identifier mismatch the authenticated user"));
-
 			try
 			{
-				await _repo.ChangePassword(id, data);
+				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+
+				_repo.ChangePassword(authenticatedUser, data);
 				await _repo.SaveChangesAsync();
 
 				var historyData = new AddHistoryData()
@@ -219,8 +210,7 @@ namespace ToDoList.UI.Controllers
 		{
 			try
 			{
-				var authenticatedUser = httpContextAccessor.GetAuthenticatedUser(userRepository);
-				if (authenticatedUser == null) return Unauthorized();
+				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
 
 				await _repo.Delete(id);
 				await _repo.SaveChangesAsync();
@@ -287,11 +277,10 @@ namespace ToDoList.UI.Controllers
 			[FromServices] IHttpContextAccessor httpContextAccessor,
 			[FromServices] IUserRepository userRepository)
 		{
-			var authenticatedUser = httpContextAccessor.GetAuthenticatedUser(userRepository);
-			if (authenticatedUser == null) return Unauthorized();
-
 			try
 			{
+				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+				
 				await _repo.AlterStatus(authenticatedUser.Id, true);
 				await _repo.SaveChangesAsync();
 
@@ -327,12 +316,11 @@ namespace ToDoList.UI.Controllers
 		public async Task<IActionResult> Deactivate(
 			[FromServices] IHttpContextAccessor httpContextAccessor,
 			[FromServices] IUserRepository userRepository)
-		{
-			var authenticatedUser = httpContextAccessor.GetAuthenticatedUser(userRepository);
-			if (authenticatedUser == null) return Unauthorized();
-
+		{			
 			try
 			{
+				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+
 				await _repo.AlterStatus(authenticatedUser.Id, false);
 				await _repo.SaveChangesAsync();
 
@@ -344,6 +332,46 @@ namespace ToDoList.UI.Controllers
 
 				_historyRepo.AddHistory(historyData);
 				
+				return NoContent();
+			}
+			catch (Exception exception)
+			{
+				int code = ExceptionController.GetStatusCode(exception);
+				return StatusCode(code, exception);
+			}
+		}
+
+		/// <summary>
+		/// Edit users account.
+		/// </summary>		
+		[Authorize]
+		[HttpPatch]
+		[Route("Edit")]
+		[ProducesDefaultResponseType]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<IActionResult> Edit(
+			[FromBody] EditData data,
+			[FromServices] IHttpContextAccessor httpContextAccessor,
+			[FromServices] IUserRepository userRepository)
+		{
+			try
+			{
+				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+				await _repo.Edit(authenticatedUser, data);
+				await _repo.SaveChangesAsync();
+
+				var historyData = new AddHistoryData()
+				{
+					UserId = authenticatedUser.Id,
+					Action = HistoryAction.EditedAccount,
+					Content = data
+				};
+
+				_historyRepo.AddHistory(historyData);
+
 				return NoContent();
 			}
 			catch (Exception exception)

@@ -73,6 +73,20 @@ namespace Domains
 
 #endif
 
+		public void SetName(string name)
+		{
+			if (string.IsNullOrEmpty(name.Trim())) throw new MissingArgumentsException(nameof(name));
+
+			Name = name;
+		}
+
+		public void SetLogin(string login)
+		{
+			if (string.IsNullOrEmpty(login.Trim())) throw new MissingArgumentsException(nameof(login));
+
+			Login = login;
+		}
+
 		public void SetPassword(string password)
 		{
 			if (string.IsNullOrEmpty(password)) throw new MissingArgumentsException(nameof(password));

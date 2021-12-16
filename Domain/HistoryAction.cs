@@ -14,6 +14,7 @@
 		ReopenedTask = 9,
 		ListedTasks = 10,
 		AddedCommentToTask = 11,
-		ListedTaskComments = 12
+		ListedTaskComments = 12,
+		EditedAccount = 13
 	}
 }

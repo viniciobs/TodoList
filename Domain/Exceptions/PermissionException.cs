@@ -3,9 +3,7 @@
 namespace Domains.Exceptions
 {
 	public class PermissionException : Exception
-	{
-		#region Constructors
-
+	{	
 		public PermissionException()
 			: base()
 		{ }
@@ -13,7 +11,5 @@ namespace Domains.Exceptions
 		public PermissionException(string message)
 			: base(message)
 		{ }
-
-		#endregion Constructors
 	}
 }

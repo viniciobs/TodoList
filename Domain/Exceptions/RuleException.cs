@@ -4,8 +4,6 @@ namespace Domains.Exceptions
 {
 	public class RuleException : Exception
 	{
-		#region Constructors
-
 		public RuleException()
 			: base()
 		{ }
@@ -13,7 +11,5 @@ namespace Domains.Exceptions
 		public RuleException(string message)
 			: base(message)
 		{ }
-
-		#endregion Constructors
 	}
 }

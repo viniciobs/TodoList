@@ -6,7 +6,6 @@ using Repository.DTOs.Accounts;
 using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
-using Repository._Commom;
 
 namespace Repository
 {
@@ -39,32 +38,38 @@ namespace Repository
 			};
 		}
 
-		public async Task ChangePassword(Guid userId, ChangePasswordData data)
+		public void ChangePassword(User user, ChangePasswordData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (string.IsNullOrEmpty(data.OldPassword)) throw new MissingArgumentsException(data.OldPassword);
-			if (string.IsNullOrEmpty(data.NewPassword)) throw new MissingArgumentsException(data.NewPassword);
-
-			var user = await _db.User.FirstOrDefaultAsync(x => x.Id == userId && x.Password == data.OldPassword);
+			if (user.Password != data.OldPassword) throw new RuleException("Old password is wrong");
+			if (string.IsNullOrEmpty(data.NewPassword)) throw new MissingArgumentsException(data.NewPassword);			
 			if (user == null) throw new NotFoundException(typeof(User));
 
 			user.SetPassword(data.NewPassword);
+			_db.Update(user);
 		}
 
 		public async Task Create(CreateAccountData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
-			if (string.IsNullOrEmpty(data.Name)) throw new MissingArgumentsException(nameof(data.Name));
-			if (string.IsNullOrEmpty(data.Login.Trim())) throw new MissingArgumentsException(nameof(data.Login));
+			if (string.IsNullOrEmpty(data.Name)) throw new MissingArgumentsException(nameof(data.Name));			
 			if (string.IsNullOrEmpty(data.Password)) throw new MissingArgumentsException(nameof(data.Password));
-
-			var loginExists = await _db.User.AnyAsync(x => x.Login == data.Login);
-			if (loginExists) throw new RuleException("The given login already exists");
+			
+			await ValidateLogin(data.Login);
 
 			var user = User.New(data.Name, data.Login);
 			user.SetPassword(data.Password);
 
 			await _db.User.AddAsync(user);
+		}
+
+		private async Task ValidateLogin(string login)
+		{
+			if (string.IsNullOrEmpty(login.Trim())) throw new MissingArgumentsException(nameof(login));
+
+			var loginExists = await _db.User.AnyAsync(x => x.Login == login);
+			if (loginExists) throw new RuleException("The given login already exists");
 		}
 
 		public async Task Delete(Guid userId)
@@ -88,6 +93,30 @@ namespace Repository
 			{
 				await _db.Entry(user).Collection(x => x.TargetTasks).LoadAsync();
 				user.Deactivate();
+			}
+
+			_db.User.Update(user);
+		}
+
+		public async Task Edit(User user, EditData data)
+		{
+			if (data == null) throw new MissingArgumentsException(nameof(data));
+			if (user == null) throw new UnauthorizeException();
+
+			bool hasAnyChange = user.Login != data.Login || user.Name != data.Name;
+			if (!hasAnyChange) return;
+
+			bool alterLogin = data.Login != null;
+			if (alterLogin)
+			{
+				await ValidateLogin(data.Login);
+				user.SetLogin(data.Login);
+			}
+				
+			bool alterName = data.Name != null;
+			if (alterName)
+			{
+				user.SetName(data.Name);
 			}
 
 			_db.User.Update(user);

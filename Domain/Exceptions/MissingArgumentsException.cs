@@ -4,8 +4,6 @@ namespace Domains.Exceptions
 {
 	public class MissingArgumentsException : ArgumentNullException
 	{
-		#region Constructors
-
 		public MissingArgumentsException()
 			: base()
 		{ }
@@ -17,7 +15,5 @@ namespace Domains.Exceptions
 		public MissingArgumentsException(string paramName, string message = null)
 			: base(paramName, message)
 		{ }
-
-		#endregion Constructors
 	}
 }

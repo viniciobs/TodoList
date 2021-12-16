@@ -1,4 +1,5 @@
 ﻿using Domains;
+using Domains.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
@@ -26,6 +27,14 @@ namespace ToDoList.UI.Controllers.Commom
 			{
 				return null;
 			}
+		}
+
+		public static User EnsureAuthentication(this IHttpContextAccessor httpContextAccessor, IUserRepository repo)
+		{
+			User user = GetAuthenticatedUser(httpContextAccessor, repo);
+			if (user == null) throw new UnauthorizeException("You must be logged in to procceed");
+
+			return user;
 		}
 	}
 }

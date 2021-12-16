@@ -3,14 +3,8 @@
 namespace Domains.Exceptions
 {
 	public class NotFoundException : Exception
-	{
-		#region Properties
-
+	{		
 		public Type Type { get; private set; }
-
-		#endregion Properties
-
-		#region Constructors
 
 		public NotFoundException()
 			: base()
@@ -31,7 +25,5 @@ namespace Domains.Exceptions
 		{
 			Type = type;
 		}
-
-		#endregion Constructors
 	}
 }
