@@ -1,5 +1,4 @@
-﻿using Repository.DTOs._Commom;
-using Repository.DTOs._Commom.Pagination;
+﻿using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Tasks;
 using Repository.Interfaces.Base;
 using System;
@@ -14,5 +13,7 @@ namespace Repository.Interfaces
 		public Task<PaginationResult<TaskResult>> Get(TaskFilter data);
 		public Task Finish(UserTask data);
 		public Task Reopen(UserTask data);
+		public Task<TaskCommentResult> AddComment(TaskCommentData data);
+		public Task<PaginationResult<TaskCommentResult>> Get(TaskCommentFilter data);
 	}
 }

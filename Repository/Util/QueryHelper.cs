@@ -21,9 +21,9 @@ namespace Repository.Util
 		{
 			if (filter == null) return source;
 
-			var filterByName = !string.IsNullOrEmpty(filter.Name);
-			var filterByLogin = !string.IsNullOrEmpty(filter.Login);
-			var filterByStatus = filter.IsActive.HasValue;
+			bool filterByName = !string.IsNullOrEmpty(filter.Name);
+			bool filterByLogin = !string.IsNullOrEmpty(filter.Login);
+			bool filterByStatus = filter.IsActive.HasValue;
 
 			if (filterByName)
 				source = source.Where((x) => EF.Functions.Like(x.Name, filter.Name.Like()));
@@ -41,12 +41,12 @@ namespace Repository.Util
 		{
 			if (filter == null) return source;
 
-			var filterByStatus = filter.Completed.HasValue;
-			var filterByCompletedPeriod = filter.CompletedBetween.HasValue;
-			var filterByCreatorUser = filter.CreatorUser.HasValue;
-			var filterByTargetUser = filter.TargetUser.HasValue;
+			bool filterByStatus = filter.Completed.HasValue;
+			bool filterByCompletedPeriod = filter.CompletedBetween.HasValue;
+			bool filterByCreatorUser = filter.CreatorUser.HasValue;
+			bool filterByTargetUser = filter.TargetUser.HasValue;
 
-			var period = filter.CompletedBetween;
+			Period period = filter.CompletedBetween;
 			
 			if (filterByStatus)
 				source = source.Where((x) => x.CompletedAt.HasValue == (bool)filter.Completed);
@@ -67,6 +67,24 @@ namespace Repository.Util
 					source = source.Where(x => x.TargetUserId == filter.TargetUser);
 			}
 			
+
+			return source;
+		}
+
+		public static IQueryable<User.Task.TaskComment> Filter(this IQueryable<User.Task.TaskComment> source, TaskCommentFilter filter)
+		{
+			if (filter == null) return source;
+
+			bool filterByTask = filter.TaskId != default;
+			bool filterByPeriod = filter.CreatedBetween.HasValue;
+			
+			Period period = filter.CreatedBetween;
+
+			if (filterByPeriod)
+				source = source.Where(x => period.IsBetween(x.CreatedAt));
+
+			if (filterByTask)
+				source = source.Where(x => x.TaskId == filter.TaskId);
 
 			return source;
 		}

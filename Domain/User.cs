@@ -132,14 +132,14 @@ namespace Domains
 			taskToReopen.Reopen();
 		}
 
-		public void AddComment(Task task, string comment)
+		public TaskComment AddComment(Task task, string comment)
 		{
 			if (task == null) throw new MissingArgumentsException(nameof(task));
 
-			var userCanComment = task.CreatorUser == this || task.TargetUser == this;
+			var userCanComment = task.CreatorUserId == Id || task.TargetUserId == Id;
 			if (!userCanComment) throw new PermissionException("User has no permission to comment this task");
 
-			task.AddComment(this, comment);
+			return task.AddComment(this, comment);
 		}		
 	}
 }

@@ -12,6 +12,8 @@
 		AssignedTask = 7,
 		FinishedTask = 8,
 		ReopenedTask = 9,
-		ListedTasks = 10
+		ListedTasks = 10,
+		AddedCommentToTask = 11,
+		ListedTaskComments = 12
 	}
 }

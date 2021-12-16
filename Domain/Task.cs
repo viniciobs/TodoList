@@ -22,7 +22,9 @@ namespace Domains
 			public ICollection<TaskComment> Comments { get; private set; }
 
 			private Task()
-			{ }
+			{
+				Comments = new HashSet<TaskComment>();
+			}
 
 			private Task(User creator, User target, string description)
 			{
@@ -59,11 +61,13 @@ namespace Domains
 				CompletedAt = null;
 			}
 
-			public void AddComment(User creator, string text)
+			public TaskComment AddComment(User creator, string text)
 			{
 				var comment = TaskComment.New(this, creator, text);
 
 				Comments.Add(comment);
+
+				return comment;
 			}
 		}
 	}

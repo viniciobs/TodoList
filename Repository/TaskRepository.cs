@@ -21,7 +21,27 @@ namespace Repository
 			: base(context)
 		{
 			_pagination = pagination;
-		}	
+		}
+
+		public async Task<TaskCommentResult> AddComment(TaskCommentData data)
+		{
+			if (data == null) throw new MissingArgumentsException(nameof(data));
+			if (data.User == null) throw new PermissionException("Missing autenticated user");
+			if (data.TaskId == null) throw new MissingArgumentsException(nameof(data.TaskId));
+			if (string.IsNullOrEmpty(data.Comment.Trim())) throw new MissingArgumentsException(nameof(data.Comment));
+
+			var task = await _db.Task.FindAsync(data.TaskId);
+			if (task == null) throw new NotFoundException("Couldn't find task");
+
+			var comment = data.User.AddComment(task, data.Comment);
+
+			await _db.TaskComment.AddAsync(comment);
+
+			_db.Entry(comment.CreatedBy).State = EntityState.Unchanged;
+			_db.Entry(comment.Task).State = EntityState.Unchanged;
+
+			return TaskCommentResult.Convert(comment);
+		}
 
 		public async Task<TaskResult> Assign(AssignTaskData data)
 		{
@@ -67,8 +87,21 @@ namespace Repository
 			return _pagination.Paginate(
 				filter,
 				total,
-				tasks.Select(tasks => TaskResult.Convert(tasks))
+				tasks.Select(task => TaskResult.Convert(task))
 			);
+		}
+
+		public async Task<PaginationResult<TaskCommentResult>> Get(TaskCommentFilter filter)
+		{
+			var query = _db.TaskComment.AsNoTracking().Filter(filter);
+			var comments = await query.OrderBy(x => x.CreatedAt).Paginate(filter).ToArrayAsync();
+			var total = await query.CountAsync();
+
+			return _pagination.Paginate(
+				filter,
+				total,
+				comments.Select(comment => TaskCommentResult.Convert(comment))
+			);			
 		}
 
 		public async Task Reopen(UserTask data)
