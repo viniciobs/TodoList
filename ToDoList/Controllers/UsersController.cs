@@ -59,7 +59,7 @@ namespace ToDoList.UI.Controllers
 					ItemsPerPage = itemsPerPage
 				};
 				
-				var users = await _userRepo.Get(filter);
+				var users = await _userRepo.GetAsync(filter);
 
 				var historyData = new AddHistoryData()
 				{
@@ -68,7 +68,7 @@ namespace ToDoList.UI.Controllers
 					Content = new { Filter = filter }
 				};
 
-				_historyRepository.AddHistory(historyData);
+				_historyRepository.AddHistoryAsync(historyData);
 
 				return Ok(users);
 			}
@@ -101,7 +101,7 @@ namespace ToDoList.UI.Controllers
 				if (authenticatedUser.Role != UserRole.Admin)
 					filterOnlyActive = true;
 
-				var user = await _userRepo.Find(id, filterOnlyActive);
+				var user = await _userRepo.FindAsync(id, filterOnlyActive);
 
 				UserResult userResult = UserResult.Convert(user);
 
@@ -112,7 +112,7 @@ namespace ToDoList.UI.Controllers
 					Content = new { Id = id }
 				};
 
-				_historyRepository.AddHistory(historyData);
+				_historyRepository.AddHistoryAsync(historyData);
 
 				return Ok(userResult);
 			}
@@ -151,7 +151,7 @@ namespace ToDoList.UI.Controllers
 					NewRole = targetUserNewRole
 				};
 
-				await _userRepo.AlterUserRole(data);
+				await _userRepo.AlterUserRoleAsync(data);
 				await _userRepo.SaveChangesAsync();
 
 				var historyData = new AddHistoryData()
@@ -161,7 +161,7 @@ namespace ToDoList.UI.Controllers
 					Content = new { TargetUserId = targetUserid, NewRole = targetUserNewRole }
 				};
 
-				_historyRepository.AddHistory(historyData);
+				_historyRepository.AddHistoryAsync(historyData);
 
 				return NoContent();
 			}

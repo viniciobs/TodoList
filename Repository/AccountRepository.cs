@@ -11,17 +11,11 @@ namespace Repository
 {
 	public class AccountRepository : _Commom.Repository, IAccountRepository
 	{
-		#region Constructor
-
 		public AccountRepository(ApplicationContext context)
 			: base(context)
 		{ }		
 
-		#endregion Constructor
-
-		#region Methods
-
-		public async Task<AuthenticationResult> Authenticate(AuthenticationData data)
+		public async Task<AuthenticationResult> AuthenticateAsync(AuthenticationData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (string.IsNullOrEmpty(data.Login)) throw new MissingArgumentsException(nameof(data.Login));
@@ -50,7 +44,7 @@ namespace Repository
 			_db.Update(user);
 		}
 
-		public async Task Create(CreateAccountData data)
+		public async Task CreateAsync(CreateAccountData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (string.IsNullOrEmpty(data.Name)) throw new MissingArgumentsException(nameof(data.Name));			
@@ -72,7 +66,7 @@ namespace Repository
 			if (loginExists) throw new RuleException("The given login already exists");
 		}
 
-		public async Task Delete(Guid userId)
+		public async Task DeleteAsync(Guid userId)
 		{
 			var user = await _db.User.FindAsync(userId);
 			if (user == null) throw new NotFoundException(typeof(User));
@@ -80,7 +74,7 @@ namespace Repository
 			_db.User.Remove(user);
 		}
 
-		public async Task AlterStatus(Guid userId, bool active)
+		public async Task AlterStatusAsync(Guid userId, bool active)
 		{
 			var user = await _db.User.FindAsync(userId);
 			if (user == null) throw new NotFoundException(typeof(User));
@@ -98,7 +92,7 @@ namespace Repository
 			_db.User.Update(user);
 		}
 
-		public async Task Edit(User user, EditData data)
+		public async Task EditAsync(User user, EditData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (user == null) throw new UnauthorizeException();
@@ -121,7 +115,5 @@ namespace Repository
 
 			_db.User.Update(user);
 		}
-
-		#endregion Methods
 	}
 }

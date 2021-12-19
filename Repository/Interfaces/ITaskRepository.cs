@@ -8,12 +8,12 @@ namespace Repository.Interfaces
 {
 	public interface ITaskRepository : IRepository
 	{
-		public Task<TaskResult> Assign(AssignTaskData data);
-		public Task<TaskResult> Find(Guid userId, Guid id);
-		public Task<PaginationResult<TaskResult>> Get(TaskFilter data);
-		public Task Finish(UserTask data);
-		public Task Reopen(UserTask data);
-		public Task<TaskCommentResult> AddComment(TaskCommentData data);
-		public Task<PaginationResult<TaskCommentResult>> Get(TaskCommentFilter data);
+		public Task<TaskResult> AssignAsync(AssignTaskData data);
+		public Task<TaskResult> FindAsync(Guid userId, Guid id);
+		public Task<PaginationResult<TaskResult>> GetAsync(TaskFilter data);
+		public Task FinishAsync(UserTask data);
+		public Task ReopenAsync(UserTask data);
+		public Task<TaskCommentResult> AddCommentAsync(TaskCommentData data);
+		public Task<PaginationResult<TaskCommentResult>> GetAsync(TaskCommentFilter data);
 	}
 }

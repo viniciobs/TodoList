@@ -58,7 +58,7 @@ namespace ToDoList.UI.Controllers
 
 			try
 			{
-				authenticationResult = await _repo.Authenticate(data);
+				authenticationResult = await _repo.AuthenticateAsync(data);
 			}
 			catch (Exception exception)
 			{
@@ -97,7 +97,7 @@ namespace ToDoList.UI.Controllers
 					Action = HistoryAction.Authenticated
 				};
 
-				_historyRepo.AddHistory(historyData);
+				_historyRepo.AddHistoryAsync(historyData);
 
 				return Ok(authenticationResult);
 			}
@@ -124,7 +124,7 @@ namespace ToDoList.UI.Controllers
 		{
 			try
 			{
-				await _repo.Create(data);
+				await _repo.CreateAsync(data);
 				await _repo.SaveChangesAsync();
 			}
 			catch (Exception exception)
@@ -177,7 +177,7 @@ namespace ToDoList.UI.Controllers
 					Action = HistoryAction.PasswordChanged
 				};
 
-				_historyRepo.AddHistory(historyData);
+				_historyRepo.AddHistoryAsync(historyData);
 
 				return NoContent();
 			}
@@ -212,7 +212,7 @@ namespace ToDoList.UI.Controllers
 			{
 				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
 
-				await _repo.Delete(id);
+				await _repo.DeleteAsync(id);
 				await _repo.SaveChangesAsync();
 
 				var historyData = new AddHistoryData()
@@ -222,7 +222,7 @@ namespace ToDoList.UI.Controllers
 					Content = new { deleted = id }
 				};
 
-				_historyRepo.AddHistory(historyData);
+				_historyRepo.AddHistoryAsync(historyData);
 
 			}
 			catch (Exception exception)
@@ -281,7 +281,7 @@ namespace ToDoList.UI.Controllers
 			{
 				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
 				
-				await _repo.AlterStatus(authenticatedUser.Id, true);
+				await _repo.AlterStatusAsync(authenticatedUser.Id, true);
 				await _repo.SaveChangesAsync();
 
 				var historyData = new AddHistoryData()
@@ -290,7 +290,7 @@ namespace ToDoList.UI.Controllers
 					Action = HistoryAction.ActivatedAccount
 				};
 
-				_historyRepo.AddHistory(historyData);
+				_historyRepo.AddHistoryAsync(historyData);
 			
 				return NoContent();
 			}
@@ -321,7 +321,7 @@ namespace ToDoList.UI.Controllers
 			{
 				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
 
-				await _repo.AlterStatus(authenticatedUser.Id, false);
+				await _repo.AlterStatusAsync(authenticatedUser.Id, false);
 				await _repo.SaveChangesAsync();
 
 				var historyData = new AddHistoryData()
@@ -330,7 +330,7 @@ namespace ToDoList.UI.Controllers
 					Action = HistoryAction.DeactivatedAccount
 				};
 
-				_historyRepo.AddHistory(historyData);
+				_historyRepo.AddHistoryAsync(historyData);
 				
 				return NoContent();
 			}
@@ -360,7 +360,7 @@ namespace ToDoList.UI.Controllers
 			try
 			{
 				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
-				await _repo.Edit(authenticatedUser, data);
+				await _repo.EditAsync(authenticatedUser, data);
 				await _repo.SaveChangesAsync();
 
 				var historyData = new AddHistoryData()
@@ -370,7 +370,7 @@ namespace ToDoList.UI.Controllers
 					Content = data
 				};
 
-				_historyRepo.AddHistory(historyData);
+				_historyRepo.AddHistoryAsync(historyData);
 
 				return NoContent();
 			}

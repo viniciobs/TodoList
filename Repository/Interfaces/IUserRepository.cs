@@ -9,9 +9,9 @@ namespace Repository.Interfaces
 {
 	public interface IUserRepository : IRepository
 	{
-		public Task<PaginationResult<UserResult>> Get(UserFilter filter);
-		public Task<User> Find(Guid id, bool? isActive = null);
-		public Task AlterUserRole(AlterUserRoleData data);
-		public Task<bool> ExistsAll(Guid[] usersIds);
+		public Task<PaginationResult<UserResult>> GetAsync(UserFilter filter);
+		public Task<User> FindAsync(Guid id, bool? isActive = null);
+		public Task AlterUserRoleAsync(AlterUserRoleData data);
+		public Task<bool> ExistsAllAsync(Guid[] usersIds);
 	}
 }

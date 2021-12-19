@@ -21,7 +21,7 @@ namespace Repository
 			_conn = connectionString;
 		}
 
-		public async Task AddHistory(AddHistoryData data)
+		public async Task AddHistoryAsync(AddHistoryData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (data.UserId == default) throw new MissingArgumentsException(nameof(data.UserId));

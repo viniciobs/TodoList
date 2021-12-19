@@ -15,13 +15,7 @@ namespace Repository
 {
 	public class UserRepository : _Commom.Repository, IUserRepository
 	{
-		#region Properties
-		
 		private readonly IPaginationRepository _pagination;
-
-		#endregion Properties
-
-		#region Constructor
 
 		public UserRepository(ApplicationContext context, IPaginationRepository paginationRepository)
 			: base(context)
@@ -29,11 +23,7 @@ namespace Repository
 			_pagination = paginationRepository;
 		}
 
-		#endregion Constructor
-
-		#region Methods
-
-		public async Task<PaginationResult<UserResult>> Get(UserFilter filter)
+		public async Task<PaginationResult<UserResult>> GetAsync(UserFilter filter)
 		{
 			var query = _db.User.AsNoTracking().Filter(filter);
 			var users = await query.OrderBy(x => x.Name).Paginate(filter).ToArrayAsync();
@@ -46,7 +36,7 @@ namespace Repository
 			); 
 		}
 
-		public async Task<User> Find(Guid id, bool? isActive = null)
+		public async Task<User> FindAsync(Guid id, bool? isActive = null)
 		{
 			var user = await _db.User.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && (isActive == null || x.IsActive == isActive.Value));
 			if (user == null) throw new NotFoundException(typeof(User));
@@ -54,7 +44,7 @@ namespace Repository
 			return user;
 		}
 
-		public async Task AlterUserRole(AlterUserRoleData data)
+		public async Task AlterUserRoleAsync(AlterUserRoleData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 
@@ -70,13 +60,11 @@ namespace Repository
 			authenticatedUser.AlterUserRole(targetUser, data.NewRole);
 		}				
 
-		public async Task<bool> ExistsAll(Guid[] usersIds)
+		public async Task<bool> ExistsAllAsync(Guid[] usersIds)
 		{
 			var resultQty = await _db.User.AsNoTracking().Where(x => usersIds.Contains(x.Id)).Select(x => x.Id).CountAsync();
 
 			return resultQty == usersIds.Length;
 		}
-
-		#endregion Methods
 	}
 }

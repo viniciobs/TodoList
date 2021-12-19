@@ -53,7 +53,7 @@ namespace ToDoList.UI.Controllers
 		{		
 			try
 			{
-				var targetUser = await _userRepo.Find(targetUserId);				
+				var targetUser = await _userRepo.FindAsync(targetUserId);				
 
 				var assignData = new AssignTaskData()
 				{
@@ -62,7 +62,7 @@ namespace ToDoList.UI.Controllers
 					Description = description
 				};
 
-				var result = await _repo.Assign(assignData);
+				var result = await _repo.AssignAsync(assignData);
 				await _repo.SaveChangesAsync();
 
 				var historyData = new AddHistoryData()
@@ -72,7 +72,7 @@ namespace ToDoList.UI.Controllers
 					Content = new { TargetUserId = targetUserId, Description = description}
 				};
 
-				_historyRepository.AddHistory(historyData);
+				_historyRepository.AddHistoryAsync(historyData);
 
 				return StatusCode(StatusCodes.Status201Created, result);
 			}
@@ -103,7 +103,7 @@ namespace ToDoList.UI.Controllers
 
 			try
 			{
-				var result = await _repo.Find(targetUserId, id);
+				var result = await _repo.FindAsync(targetUserId, id);
 
 				var historyData = new AddHistoryData()
 				{
@@ -112,7 +112,7 @@ namespace ToDoList.UI.Controllers
 					Content = new { TargetUserId = targetUserId, TaskId = id }
 				};
 
-				_historyRepository.AddHistory(historyData);
+				_historyRepository.AddHistoryAsync(historyData);
 
 				return Ok(result);
 			}
@@ -157,7 +157,7 @@ namespace ToDoList.UI.Controllers
 					ItemsPerPage = itemsPerPage
 				};
 
-				var result = await _repo.Get(filter);
+				var result = await _repo.GetAsync(filter);
 
 				var historyData = new AddHistoryData()
 				{
@@ -166,7 +166,7 @@ namespace ToDoList.UI.Controllers
 					Content = new { Filter = filter }
 				};
 
-				_historyRepository.AddHistory(historyData);
+				_historyRepository.AddHistoryAsync(historyData);
 
 				return Ok(result);
 			}
@@ -209,7 +209,7 @@ namespace ToDoList.UI.Controllers
 					ItemsPerPage = itemsPerPage
 				};
 
-				var result = await _repo.Get(filter);
+				var result = await _repo.GetAsync(filter);
 
 				var historyData = new AddHistoryData()
 				{
@@ -218,7 +218,7 @@ namespace ToDoList.UI.Controllers
 					Content = new { Filter = filter }
 				};
 
-				_historyRepository.AddHistory(historyData);
+				_historyRepository.AddHistoryAsync(historyData);
 
 				return Ok(result);
 			}
@@ -252,7 +252,7 @@ namespace ToDoList.UI.Controllers
 					User = authenticatedUser
 				};
 
-				await _repo.Finish(data);
+				await _repo.FinishAsync(data);
 				await _repo.SaveChangesAsync();
 
 				var historyData = new AddHistoryData()
@@ -262,7 +262,7 @@ namespace ToDoList.UI.Controllers
 					Content = new { TaskId = id }
 				};
 
-				_historyRepository.AddHistory(historyData);
+				_historyRepository.AddHistoryAsync(historyData);
 			
 				return NoContent();
 			}
@@ -297,7 +297,7 @@ namespace ToDoList.UI.Controllers
 					User = authenticatedUser
 				};
 
-				await _repo.Reopen(data);
+				await _repo.ReopenAsync(data);
 				await _repo.SaveChangesAsync();
 
 				var historyData = new AddHistoryData()
@@ -307,7 +307,7 @@ namespace ToDoList.UI.Controllers
 					Content = new { TaskId = id }
 				};
 
-				_historyRepository.AddHistory(historyData);
+				_historyRepository.AddHistoryAsync(historyData);
 			
 				return NoContent();
 
@@ -345,7 +345,7 @@ namespace ToDoList.UI.Controllers
 					User = authenticatedUser
 				};
 
-				TaskCommentResult result = await _repo.AddComment(data);
+				TaskCommentResult result = await _repo.AddCommentAsync(data);
 				await _repo.SaveChangesAsync();
 
 				var historyData = new AddHistoryData()
@@ -355,7 +355,7 @@ namespace ToDoList.UI.Controllers
 					Content = new { TaskId = id, Comment = comment }
 				};
 
-				_historyRepository.AddHistory(historyData);
+				_historyRepository.AddHistoryAsync(historyData);
 
 				return StatusCode(StatusCodes.Status201Created, result);	
 			}
@@ -394,7 +394,7 @@ namespace ToDoList.UI.Controllers
 					ItemsPerPage = itemsPerPage
 				};
 
-				result = await _repo.Get(filter);
+				result = await _repo.GetAsync(filter);
 
 				var historyData = new AddHistoryData()
 				{
@@ -403,7 +403,7 @@ namespace ToDoList.UI.Controllers
 					Content = new { Filter = filter }
 				};
 
-				_historyRepository.AddHistory(historyData);
+				_historyRepository.AddHistoryAsync(historyData);
 
 				return Ok(result);
 			}

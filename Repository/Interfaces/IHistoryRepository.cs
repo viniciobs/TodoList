@@ -5,6 +5,6 @@ namespace Repository.Interfaces
 {
 	public interface IHistoryRepository
 	{
-		Task AddHistory(AddHistoryData data); 
+		Task AddHistoryAsync(AddHistoryData data); 
 	}
 }

@@ -8,11 +8,11 @@ namespace Repository.Interfaces
 {
 	public interface IAccountRepository : IRepository
 	{
-		public Task<AuthenticationResult> Authenticate(AuthenticationData data);
-		public Task Create(CreateAccountData data);
+		public Task<AuthenticationResult> AuthenticateAsync(AuthenticationData data);
+		public Task CreateAsync(CreateAccountData data);
+		public Task DeleteAsync(Guid userId);
+		public Task AlterStatusAsync(Guid userId, bool active);
+		public Task EditAsync(User user, EditData data);
 		public void ChangePassword(User user, ChangePasswordData data);
-		public Task Delete(Guid userId);
-		public Task AlterStatus(Guid userId, bool active);
-		public Task Edit(User user, EditData data);
 	}
 }

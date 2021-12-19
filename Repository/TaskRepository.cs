@@ -23,7 +23,7 @@ namespace Repository
 			_pagination = pagination;
 		}
 
-		public async Task<TaskCommentResult> AddComment(TaskCommentData data)
+		public async Task<TaskCommentResult> AddCommentAsync(TaskCommentData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (data.User == null) throw new MissingArgumentsException(nameof(data.User));
@@ -43,7 +43,7 @@ namespace Repository
 			return TaskCommentResult.Convert(comment);
 		}
 
-		public async Task<TaskResult> Assign(AssignTaskData data)
+		public async Task<TaskResult> AssignAsync(AssignTaskData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (string.IsNullOrEmpty(data.Description)) throw new MissingArgumentsException(nameof(data.Description));
@@ -62,7 +62,7 @@ namespace Repository
 			return TaskResult.Convert(task);
 		}
 
-		public async Task<TaskResult> Find(Guid userId, Guid id)
+		public async Task<TaskResult> FindAsync(Guid userId, Guid id)
 		{
 			var task = await _db.Task.AsNoTracking().Include(x => x.CreatorUser).Include(x => x.TargetUser).SingleOrDefaultAsync(x => x.Id == id && (x.TargetUserId == userId || x.CreatorUserId == userId));
 			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
@@ -70,7 +70,7 @@ namespace Repository
 			return TaskResult.Convert(task); 
 		}
 
-		public async Task Finish(UserTask data)
+		public async Task FinishAsync(UserTask data)
 		{
 			var task = await _db.Task.SingleOrDefaultAsync(x => x.Id == data.TaskId);
 			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
@@ -78,7 +78,7 @@ namespace Repository
 			data.User.FinishTask(task);					
 		}
 
-		public async Task<PaginationResult<TaskResult>> Get(TaskFilter filter)
+		public async Task<PaginationResult<TaskResult>> GetAsync(TaskFilter filter)
 		{
 			var query = _db.Task.AsNoTracking().Include(x => x.CreatorUser).Include(x => x.TargetUser).Filter(filter);
 			var tasks = await query.OrderBy(x => x.CreatedAt).Paginate(filter).ToArrayAsync();
@@ -91,7 +91,7 @@ namespace Repository
 			);
 		}
 
-		public async Task<PaginationResult<TaskCommentResult>> Get(TaskCommentFilter filter)
+		public async Task<PaginationResult<TaskCommentResult>> GetAsync(TaskCommentFilter filter)
 		{
 			var query = _db.TaskComment.AsNoTracking().Filter(filter);
 			var comments = await query.OrderBy(x => x.CreatedAt).Paginate(filter).ToArrayAsync();
@@ -104,7 +104,7 @@ namespace Repository
 			);			
 		}
 
-		public async Task Reopen(UserTask data)
+		public async Task ReopenAsync(UserTask data)
 		{
 			var task = await _db.Task.SingleOrDefaultAsync(x => x.Id == data.TaskId);
 			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
