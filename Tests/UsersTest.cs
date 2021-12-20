@@ -55,6 +55,75 @@ namespace Tests
 		}
 
 		[TestMethod]
+		public void TestUserDeactivateAccountThrowRuleException()
+		{
+			// Act
+			var user = GenerateRandomUser();
+			user.AssignTask(user, GenerateRandomString());
+
+			// Assert
+			Assert.ThrowsException<RuleException>(() => user.Deactivate());
+		}
+
+		[TestMethod]
+		public void TestUserDeactivateAccountOk()
+		{
+			// Act
+			var user = GenerateRandomUser();
+			var task = user.AssignTask(user, GenerateRandomString());
+			user.FinishTask(task);
+
+			// Assert
+			Assert.IsFalse(user.IsActive);
+		}
+
+		[TestMethod]
+		public void TestUserSetNameThrowMissingArgumentException()
+		{
+			// Act
+			var user = GenerateRandomUser();
+
+			// Assert
+			Assert.ThrowsException<MissingArgumentsException>(() => user.SetName(EmptyName));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.SetName(NullName));
+		}
+
+		[TestMethod]
+		public void TestUserSetNameOk()
+		{
+			// Act
+			var user = GenerateRandomUser();
+			var oldName = user.Name;
+			var newName = GenerateRandomString();
+
+			// Assert
+			Assert.AreNotEqual(oldName, newName);
+		}
+
+		[TestMethod]
+		public void TestUserSetLoginThrowMissingArgumentException()
+		{
+			// Act
+			var user = GenerateRandomUser();
+
+			// Assert
+			Assert.ThrowsException<MissingArgumentsException>(() => user.SetLogin(EmptyLogin));
+			Assert.ThrowsException<MissingArgumentsException>(() => user.SetLogin(NullLogin));
+		}
+
+		[TestMethod]
+		public void TestUserSetLoginOk()
+		{
+			// Act
+			var user = GenerateRandomUser();
+			var oldLogin = user.Login;
+			var newLogin = GenerateRandomString();
+
+			// Assert
+			Assert.AreNotEqual(oldLogin, newLogin);
+		}
+
+		[TestMethod]
 		public void TestUserSetRoleThrowRuleException()
 		{
 			// Act
@@ -66,6 +135,7 @@ namespace Tests
 			// Assert
 			Assert.ThrowsException<RuleException>(() => adminUser.AlterUserRole(randomUser, UserRole.Normal));
 			Assert.ThrowsException<RuleException>(() => adminUser2.AlterUserRole(adminUser, UserRole.Admin));
+			Assert.ThrowsException<RuleException>(() => adminUser2.AlterUserRole(adminUser2, UserRole.Normal));
 		}
 
 		[TestMethod]
@@ -104,6 +174,6 @@ namespace Tests
 
 			// Assert 2
 			Assert.AreEqual(randomUser.Role, UserRole.Normal);
-		}
+		}		
 	}
 }

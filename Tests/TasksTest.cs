@@ -107,10 +107,9 @@ namespace Tests
 		public void TestFinishTaskTrhowMissingArgumentsException()
 		{
 			// Assert
-			var user = GenerateRandomUser();
+			var user = GenerateRandomUser();			
 
 			// Act and assert
-			Assert.ThrowsException<MissingArgumentsException>(() => user.FinishTask(NullTask));
 			Assert.ThrowsException<MissingArgumentsException>(() => user.FinishTask(NullTask));
 		}
 

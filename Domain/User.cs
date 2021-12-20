@@ -75,14 +75,14 @@ namespace Domains
 
 		public void SetName(string name)
 		{
-			if (string.IsNullOrEmpty(name.Trim())) throw new MissingArgumentsException(nameof(name));
+			if (string.IsNullOrEmpty(name?.Trim())) throw new MissingArgumentsException(nameof(name));
 
 			Name = name;
 		}
 
 		public void SetLogin(string login)
 		{
-			if (string.IsNullOrEmpty(login.Trim())) throw new MissingArgumentsException(nameof(login));
+			if (string.IsNullOrEmpty(login?.Trim())) throw new MissingArgumentsException(nameof(login));
 
 			Login = login;
 		}
