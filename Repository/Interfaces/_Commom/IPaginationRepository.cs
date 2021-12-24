@@ -1,14 +1,14 @@
 ﻿using Repository.DTOs._Commom.Pagination;
-using System.Collections.Generic;
+using Repository.Interfaces._Commom;
 using System.Threading.Tasks;
-using System;
 
 namespace Repository.Interfaces_Commom
 {
 	public interface IPaginationRepository
 	{
-		public PaginationResult<T> Paginate<T, S>(S filter, int total, IEnumerable<T> data)
-			where T : class
-			where S : PaginationFilter;
+		public  Task<PaginationResult<TResult>> Paginate<TResult, TSource, TFilter>(IFilterRepository<TResult, TSource, TFilter> filterRepository, TFilter filter)
+			where TResult : class
+			where TSource : class
+			where TFilter : PaginationFilter;
 	}
 }

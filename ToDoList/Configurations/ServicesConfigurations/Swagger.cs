@@ -9,6 +9,11 @@ namespace ToDoList.UI.Configurations.ServicesConfigurations
 {
 	public static class Swagger
 	{
+		public static string ACCOUNTS = "accounts";
+		public static string USERS = "users";
+		public static string TASKS = "tasks";
+		public static string TASK_COMMENTS = "task-comments";
+
 		public static void AddSwagger(this IServiceCollection services, IConfiguration configuration)
 		{
 			services.AddSwaggerGenNewtonsoftSupport();
@@ -22,7 +27,7 @@ namespace ToDoList.UI.Configurations.ServicesConfigurations
 
 			services.AddSwaggerGen(x =>
 			{
-				x.SwaggerDoc("Accounts", new OpenApiInfo
+				x.SwaggerDoc(ACCOUNTS, new OpenApiInfo
 				{
 					Version = "1",
 					Title = "Accounts API",
@@ -30,7 +35,7 @@ namespace ToDoList.UI.Configurations.ServicesConfigurations
 					Contact = contact
 				});
 
-				x.SwaggerDoc("Users", new OpenApiInfo
+				x.SwaggerDoc(USERS, new OpenApiInfo
 				{
 					Version = "1",
 					Title = "Users API",
@@ -38,11 +43,19 @@ namespace ToDoList.UI.Configurations.ServicesConfigurations
 					Contact = contact
 				});
 
-				x.SwaggerDoc("Tasks", new OpenApiInfo
+				x.SwaggerDoc(TASKS, new OpenApiInfo
 				{
 					Version = "1",
 					Title = "Tasks API",
 					Description = "The API allows tasks management",
+					Contact = contact
+				});
+
+				x.SwaggerDoc(TASK_COMMENTS, new OpenApiInfo
+				{
+					Version = "1",
+					Title = "Tasks comments API",
+					Description = "The API allows tasks comments management",
 					Contact = contact
 				});
 

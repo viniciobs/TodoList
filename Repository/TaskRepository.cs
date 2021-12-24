@@ -1,10 +1,12 @@
 ﻿using DataAccess;
+using Domains;
 using Domains.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Repository.DTOs._Commom;
 using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Tasks;
 using Repository.Interfaces;
+using Repository.Interfaces._Commom;
 using Repository.Interfaces_Commom;
 using Repository.Util;
 using System;
@@ -13,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Repository
 {
-	public class TaskRepository : _Commom.Repository, ITaskRepository
+	public class TaskRepository : _Commom.Repository, ITaskRepository, IFilterRepository<TaskResult, User.Task, TaskFilter>
 	{
 		private readonly IPaginationRepository _pagination;
 
@@ -23,24 +25,43 @@ namespace Repository
 			_pagination = pagination;
 		}
 
-		public async Task<TaskCommentResult> AddCommentAsync(TaskCommentData data)
+		public IQueryable<User.Task> ApplyFilter(IQueryable<User.Task> source, TaskFilter filter)
 		{
-			if (data == null) throw new MissingArgumentsException(nameof(data));
-			if (data.User == null) throw new MissingArgumentsException(nameof(data.User));
-			if (data.TaskId == null) throw new MissingArgumentsException(nameof(data.TaskId));
-			if (string.IsNullOrEmpty(data.Comment.Trim())) throw new MissingArgumentsException(nameof(data.Comment));
+			if (filter == null) return source;
 
-			var task = await _db.Task.FindAsync(data.TaskId);
-			if (task == null) throw new NotFoundException("Couldn't find task");
+			bool filterByStatus = filter.Completed.HasValue;
+			bool filterByCompletedPeriod = filter.CompletedBetween.HasValue;
+			bool filterByCreatorUser = filter.CreatorUser.HasValue;
+			bool filterByTargetUser = filter.TargetUser.HasValue;
 
-			var comment = data.User.AddComment(task, data.Comment);
+			Period period = filter.CompletedBetween;
 
-			await _db.TaskComment.AddAsync(comment);
+			if (filterByStatus)
+				source = source.Where((x) => x.CompletedAt.HasValue == (bool)filter.Completed);
 
-			_db.Entry(comment.CreatedBy).State = EntityState.Unchanged;
-			_db.Entry(comment.Task).State = EntityState.Unchanged;
+			if (filterByCompletedPeriod)
+				source = source.Where(x => x.CompletedAt.HasValue && period.IsBetween(x.CompletedAt.Value));
 
-			return TaskCommentResult.Convert(comment);
+			if (filterByCreatorUser && filterByTargetUser && filter.UserFilter == FilterHelper.OR)
+			{
+				source = source.Where(x => x.CreatorUserId == filter.CreatorUser || x.TargetUserId == filter.TargetUser);
+			}
+			else
+			{
+				if (filterByCreatorUser)
+					source = source.Where(x => x.CreatorUserId == filter.CreatorUser);
+
+				if (filterByTargetUser)
+					source = source.Where(x => x.TargetUserId == filter.TargetUser);
+			}
+
+
+			return source;
+		}
+
+		public IQueryable<User.Task> ApplyIncludes(IQueryable<User.Task> source)
+		{
+			return source.Include(x => x.CreatorUser).Include(x => x.TargetUser);
 		}
 
 		public async Task<TaskResult> AssignAsync(AssignTaskData data)
@@ -62,6 +83,11 @@ namespace Repository
 			return TaskResult.Convert(task);
 		}
 
+		public IQueryable<TaskResult> CastToDTO(IQueryable<User.Task> source)
+		{
+			return source.Select(task => TaskResult.Convert(task));
+		}
+
 		public async Task<TaskResult> FindAsync(Guid userId, Guid id)
 		{
 			var task = await _db.Task.AsNoTracking().Include(x => x.CreatorUser).Include(x => x.TargetUser).SingleOrDefaultAsync(x => x.Id == id && (x.TargetUserId == userId || x.CreatorUserId == userId));
@@ -80,28 +106,12 @@ namespace Repository
 
 		public async Task<PaginationResult<TaskResult>> GetAsync(TaskFilter filter)
 		{
-			var query = _db.Task.AsNoTracking().Include(x => x.CreatorUser).Include(x => x.TargetUser).Filter(filter);
-			var tasks = await query.OrderBy(x => x.CreatedAt).Paginate(filter).ToArrayAsync();
-			var total = await query.CountAsync();
-
-			return _pagination.Paginate(
-				filter,
-				total,
-				tasks.Select(task => TaskResult.Convert(task))
-			);
+			return await _pagination.Paginate(this, filter);
 		}
 
-		public async Task<PaginationResult<TaskCommentResult>> GetAsync(TaskCommentFilter filter)
+		public IQueryable<User.Task> OrderBy(IQueryable<User.Task> source)
 		{
-			var query = _db.TaskComment.AsNoTracking().Filter(filter);
-			var comments = await query.OrderBy(x => x.CreatedAt).Paginate(filter).ToArrayAsync();
-			var total = await query.CountAsync();
-
-			return _pagination.Paginate(
-				filter,
-				total,
-				comments.Select(comment => TaskCommentResult.Convert(comment))
-			);			
+			return source.OrderBy(x => x.CreatedAt);
 		}
 
 		public async Task ReopenAsync(UserTask data)

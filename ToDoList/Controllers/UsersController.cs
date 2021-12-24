@@ -1,5 +1,4 @@
 ﻿using Domains;
-using Domains.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +17,7 @@ namespace ToDoList.UI.Controllers
 	/// Responsible class for users management.
 	/// </summary>
 	[Route("Users")]
-	[ApiExplorerSettings(GroupName = "Users")]
+	[ApiExplorerSettings(GroupName = "users")]
 	public class UsersController : ApiControllerBase
 	{
 		private readonly IHistoryRepository _historyRepository;

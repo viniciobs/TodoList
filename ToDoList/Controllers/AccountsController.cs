@@ -25,7 +25,7 @@ namespace ToDoList.UI.Controllers
 	[Produces("application/json")]
 	[Route("accounts")]
 	[ApiController]
-	[ApiExplorerSettings(GroupName = "Accounts")]
+	[ApiExplorerSettings(GroupName = "accounts")]
 	public class AccountsController : ControllerBase
 	{
 		private readonly IAccountRepository _repo;

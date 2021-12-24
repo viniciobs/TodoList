@@ -46,7 +46,8 @@ namespace ToDoList.UI
 			services.AddScoped<IAccountRepository, AccountRepository>();
 			services.AddScoped<IUserRepository, UserRepository>();
 			services.AddScoped<ITaskRepository, TaskRepository>();
-			services.AddSingleton<IPaginationRepository, PaginationRepository>();			
+			services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
+			services.AddScoped<IPaginationRepository, PaginationRepository>();			
 			services.AddScoped<IHistoryRepository>(x => new HistoryRepository(x.GetRequiredService<ApplicationContext>(), connectionString));
 
 			services.AddJwtAuthentication(configuration.GetSection("Authentication"));
@@ -63,9 +64,10 @@ namespace ToDoList.UI
 			app.UseSwagger();
 			app.UseSwaggerUI(options =>
 			{
-				options.SwaggerEndpoint("/swagger/Accounts/swagger.json", "Accounts");
-				options.SwaggerEndpoint("/swagger/Users/swagger.json", "Users");
-				options.SwaggerEndpoint("/swagger/Tasks/swagger.json", "Tasks");
+				options.SwaggerEndpoint($"/swagger/{Swagger.ACCOUNTS}/swagger.json", "Accounts");
+				options.SwaggerEndpoint($"/swagger/{Swagger.USERS}/swagger.json", "Users");
+				options.SwaggerEndpoint($"/swagger/{Swagger.TASKS}/swagger.json", "Tasks");
+				options.SwaggerEndpoint($"/swagger/{Swagger.TASK_COMMENTS}/swagger.json", "Task comments");
 			});
 
 			app.UseHttpsRedirection();

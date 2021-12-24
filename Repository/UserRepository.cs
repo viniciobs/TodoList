@@ -5,15 +5,17 @@ using Microsoft.EntityFrameworkCore;
 using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
+using Repository.Interfaces._Commom;
 using Repository.Interfaces_Commom;
 using Repository.Util;
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Repository
 {
-	public class UserRepository : _Commom.Repository, IUserRepository
+	public class UserRepository : _Commom.Repository, IUserRepository, IFilterRepository<UserResult, User, UserFilter>
 	{
 		private readonly IPaginationRepository _pagination;
 
@@ -25,15 +27,7 @@ namespace Repository
 
 		public async Task<PaginationResult<UserResult>> GetAsync(UserFilter filter)
 		{
-			var query = _db.User.AsNoTracking().Filter(filter);
-			var users = await query.OrderBy(x => x.Name).Paginate(filter).ToArrayAsync();
-			var total = await query.CountAsync();
-
-			return _pagination.Paginate(
-				filter,
-				total,
-				users.Select(user => UserResult.Convert(user))
-			); 
+			return await _pagination.Paginate<UserResult, User, UserFilter>(this, filter);
 		}
 
 		public async Task<User> FindAsync(Guid id, bool? isActive = null)
@@ -65,6 +59,41 @@ namespace Repository
 			var resultQty = await _db.User.AsNoTracking().Where(x => usersIds.Contains(x.Id)).Select(x => x.Id).CountAsync();
 
 			return resultQty == usersIds.Length;
+		}
+	
+		public IQueryable<User> ApplyFilter(IQueryable<User> source, UserFilter filter)
+		{
+			if (filter == null) return source;
+
+			bool filterByName = !string.IsNullOrEmpty(filter.Name);
+			bool filterByLogin = !string.IsNullOrEmpty(filter.Login);
+			bool filterByStatus = filter.IsActive.HasValue;
+
+			if (filterByName)
+				source = source.Where((x) => EF.Functions.Like(x.Name, filter.Name.Like()));
+
+			if (filterByLogin)
+				source = source.Where((x) => EF.Functions.Like(x.Login, filter.Login.Like()));
+
+			if (filterByStatus)
+				source = source.Where((x) => x.IsActive == (bool)filter.IsActive);
+
+			return source;
+		}
+
+		public IQueryable<User> OrderBy(IQueryable<User> source)
+		{
+			return source.OrderBy(user => user.Name);
+		}
+
+		public IQueryable<UserResult> CastToDTO(IQueryable<User> source)
+		{
+			return source.Select(x => UserResult.Convert(x));
+		}
+
+		public IQueryable<User> ApplyIncludes(IQueryable<User> source)
+		{
+			return source;
 		}
 	}
 }
