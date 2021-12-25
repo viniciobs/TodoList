@@ -41,6 +41,11 @@ namespace Repository
 			_db.Entry(comment.Task).State = EntityState.Unchanged;
 
 			return TaskCommentResult.Convert(comment);
+		}		
+
+		public async Task<PaginationResult<TaskCommentResult>> GetAsync(TaskCommentFilter filter)
+		{
+			return await _pagination.Paginate(this, filter);
 		}
 
 		public IQueryable<User.Task.TaskComment> ApplyFilter(IQueryable<User.Task.TaskComment> source, TaskCommentFilter filter)
@@ -69,11 +74,6 @@ namespace Repository
 		public IQueryable<TaskCommentResult> CastToDTO(IQueryable<User.Task.TaskComment> source)
 		{
 			return source.Select(comment => TaskCommentResult.Convert(comment));
-		}
-
-		public async Task<PaginationResult<TaskCommentResult>> GetAsync(TaskCommentFilter filter)
-		{
-			return await _pagination.Paginate(this, filter);
 		}
 
 		public IQueryable<User.Task.TaskComment> OrderBy(IQueryable<User.Task.TaskComment> source)

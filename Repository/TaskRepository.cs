@@ -23,6 +23,54 @@ namespace Repository
 			: base(context)
 		{
 			_pagination = pagination;
+		}	
+
+		public async Task<TaskResult> AssignAsync(AssignTaskData data)
+		{
+			if (data == null) throw new MissingArgumentsException(nameof(data));
+			if (string.IsNullOrEmpty(data.Description)) throw new MissingArgumentsException(nameof(data.Description));
+			if (data.CreatorUser == null) throw new MissingArgumentsException(nameof(data.CreatorUser));
+			if (data.TargetUser == null) throw new NotFoundException("Target user was not found");
+			if (!data.CreatorUser.IsActive) throw new RuleException("To assign task, the user must be active");
+			if (!data.TargetUser.IsActive) throw new RuleException("Tasks can be assigned to active users only");
+			
+			var task = data.CreatorUser.AssignTask(data.TargetUser, data.Description);
+
+			await _db.Task.AddAsync(task);
+
+			_db.Entry(data.CreatorUser).State = EntityState.Detached;
+			_db.Entry(data.TargetUser).State = EntityState.Detached;
+
+			return TaskResult.Convert(task);
+		}	
+
+		public async Task<TaskResult> FindAsync(Guid userId, Guid id)
+		{
+			var task = await _db.Task.AsNoTracking().Include(x => x.CreatorUser).Include(x => x.TargetUser).SingleOrDefaultAsync(x => x.Id == id && (x.TargetUserId == userId || x.CreatorUserId == userId));
+			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
+
+			return TaskResult.Convert(task); 
+		}
+
+		public async Task FinishAsync(UserTask data)
+		{
+			var task = await _db.Task.SingleOrDefaultAsync(x => x.Id == data.TaskId);
+			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
+
+			data.User.FinishTask(task);					
+		}
+
+		public async Task<PaginationResult<TaskResult>> GetAsync(TaskFilter filter)
+		{
+			return await _pagination.Paginate(this, filter);
+		}
+		
+		public async Task ReopenAsync(UserTask data)
+		{
+			var task = await _db.Task.SingleOrDefaultAsync(x => x.Id == data.TaskId);
+			if (task == null) throw new NotFoundException(typeof(User.Task));
+
+			data.User.ReopenTask(task);
 		}
 
 		public IQueryable<User.Task> ApplyFilter(IQueryable<User.Task> source, TaskFilter filter)
@@ -55,7 +103,6 @@ namespace Repository
 					source = source.Where(x => x.TargetUserId == filter.TargetUser);
 			}
 
-
 			return source;
 		}
 
@@ -64,62 +111,14 @@ namespace Repository
 			return source.Include(x => x.CreatorUser).Include(x => x.TargetUser);
 		}
 
-		public async Task<TaskResult> AssignAsync(AssignTaskData data)
-		{
-			if (data == null) throw new MissingArgumentsException(nameof(data));
-			if (string.IsNullOrEmpty(data.Description)) throw new MissingArgumentsException(nameof(data.Description));
-			if (data.CreatorUser == null) throw new MissingArgumentsException(nameof(data.CreatorUser));
-			if (data.TargetUser == null) throw new NotFoundException("Target user was not found");
-			if (!data.CreatorUser.IsActive) throw new RuleException("To assign task, the user must be active");
-			if (!data.TargetUser.IsActive) throw new RuleException("Tasks can be assigned to active users only");
-			
-			var task = data.CreatorUser.AssignTask(data.TargetUser, data.Description);
-
-			await _db.Task.AddAsync(task);
-
-			_db.Entry(data.CreatorUser).State = EntityState.Detached;
-			_db.Entry(data.TargetUser).State = EntityState.Detached;
-
-			return TaskResult.Convert(task);
-		}
-
 		public IQueryable<TaskResult> CastToDTO(IQueryable<User.Task> source)
 		{
 			return source.Select(task => TaskResult.Convert(task));
 		}
 
-		public async Task<TaskResult> FindAsync(Guid userId, Guid id)
-		{
-			var task = await _db.Task.AsNoTracking().Include(x => x.CreatorUser).Include(x => x.TargetUser).SingleOrDefaultAsync(x => x.Id == id && (x.TargetUserId == userId || x.CreatorUserId == userId));
-			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
-
-			return TaskResult.Convert(task); 
-		}
-
-		public async Task FinishAsync(UserTask data)
-		{
-			var task = await _db.Task.SingleOrDefaultAsync(x => x.Id == data.TaskId);
-			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
-
-			data.User.FinishTask(task);					
-		}
-
-		public async Task<PaginationResult<TaskResult>> GetAsync(TaskFilter filter)
-		{
-			return await _pagination.Paginate(this, filter);
-		}
-
 		public IQueryable<User.Task> OrderBy(IQueryable<User.Task> source)
 		{
 			return source.OrderBy(x => x.CreatedAt);
-		}
-
-		public async Task ReopenAsync(UserTask data)
-		{
-			var task = await _db.Task.SingleOrDefaultAsync(x => x.Id == data.TaskId);
-			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
-
-			data.User.ReopenTask(task);
 		}
 	}	
 }
