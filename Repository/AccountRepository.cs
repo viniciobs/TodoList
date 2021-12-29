@@ -34,17 +34,17 @@ namespace Repository
 
 		public void ChangePassword(User user, ChangePasswordData data)
 		{
+			if (user == null) throw new UnauthorizeException();
 			if (data == null) throw new MissingArgumentsException(nameof(data));
-			if (string.IsNullOrEmpty(data.OldPassword)) throw new MissingArgumentsException(data.OldPassword);
-			if (user.Password != data.OldPassword) throw new RuleException("Old password is wrong");
-			if (string.IsNullOrEmpty(data.NewPassword)) throw new MissingArgumentsException(data.NewPassword);			
-			if (user == null) throw new NotFoundException(typeof(User));
+			if (string.IsNullOrEmpty(data.OldPassword?.Trim())) throw new MissingArgumentsException(data.OldPassword);
+			if (user.Password != data.OldPassword?.Trim()) throw new RuleException("Old password is wrong");
+			if (string.IsNullOrEmpty(data.NewPassword?.Trim())) throw new MissingArgumentsException(data.NewPassword);						
 
 			user.SetPassword(data.NewPassword);
 			_db.Update(user);
 		}
 
-		public async Task CreateAsync(CreateAccountData data)
+		public async Task<Guid> CreateAsync(CreateAccountData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (string.IsNullOrEmpty(data.Name)) throw new MissingArgumentsException(nameof(data.Name));			
@@ -56,11 +56,13 @@ namespace Repository
 			user.SetPassword(data.Password);
 
 			await _db.User.AddAsync(user);
+
+			return user.Id;
 		}
 
 		private async Task ValidateLogin(string login)
 		{
-			if (string.IsNullOrEmpty(login.Trim())) throw new MissingArgumentsException(nameof(login));
+			if (string.IsNullOrEmpty(login?.Trim())) throw new MissingArgumentsException(nameof(login));
 
 			var loginExists = await _db.User.AnyAsync(x => x.Login == login);
 			if (loginExists) throw new RuleException("The given login already exists");
@@ -97,7 +99,8 @@ namespace Repository
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (user == null) throw new UnauthorizeException();
 
-			bool hasAnyChange = user.Login != data.Login || user.Name != data.Name;
+			bool hasAnyChange = !string.IsNullOrEmpty(data.Name?.Trim()) || !string.IsNullOrEmpty(data.Login?.Trim());
+			hasAnyChange &= user.Login != data.Login || user.Name != data.Name;
 			if (!hasAnyChange) return;
 
 			bool alterLogin = data.Login != null;

@@ -45,7 +45,8 @@ namespace Domains
 				Id = Guid.NewGuid(),
 				Name = name,
 				Login = login,
-				Role = UserRole.Normal
+				Role = UserRole.Normal,
+				IsActive = true
 			};
 
 			return user;
