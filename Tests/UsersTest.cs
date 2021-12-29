@@ -72,6 +72,7 @@ namespace Tests
 			var user = GenerateRandomUser();
 			var task = user.AssignTask(user, GenerateRandomString());
 			user.FinishTask(task);
+			user.Deactivate();
 
 			// Assert
 			Assert.IsFalse(user.IsActive);
