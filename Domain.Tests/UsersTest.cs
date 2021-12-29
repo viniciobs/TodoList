@@ -1,10 +1,7 @@
-﻿using Domains;
-using Domains.Exceptions;
-using Domains.Tests;
+﻿using Domains.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
-namespace Tests
+namespace Domains.Tests
 {
 	[TestClass]
 	public class UsersTest : TestBase

@@ -1,10 +1,7 @@
 ﻿using Domains.Exceptions;
-using Domains.Tests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Security;
 
-namespace Tests
+namespace Domains.Tests
 {
 	[TestClass]
 	public class TasksTest : TestBase
