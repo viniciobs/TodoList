@@ -4,7 +4,7 @@ using System;
 
 namespace Repository.Tests.Seed
 {
-	public class FakeContext : IDisposable
+	public class FakeContext 
 	{
 		public ApplicationContext DbContext { get; private set; }
 
@@ -13,11 +13,6 @@ namespace Repository.Tests.Seed
 			var fakeDbName = Guid.NewGuid().ToString("N").ToLower().Substring(0, 10);
 			var options = new DbContextOptionsBuilder<ApplicationContext>().UseInMemoryDatabase(databaseName: fakeDbName).Options;
 			DbContext = new ApplicationContext(options);
-		}
-
-		public void Dispose()
-		{
-			DbContext.Dispose();
 		}
 	}
 }
