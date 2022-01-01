@@ -27,8 +27,8 @@ namespace Repository
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (data.User == null) throw new MissingArgumentsException(nameof(data.User));
-			if (data.TaskId == null) throw new MissingArgumentsException(nameof(data.TaskId));
-			if (string.IsNullOrEmpty(data.Comment.Trim())) throw new MissingArgumentsException(nameof(data.Comment));
+			if (data.TaskId == null || data.TaskId == default) throw new MissingArgumentsException(nameof(data.TaskId));
+			if (string.IsNullOrEmpty(data.Comment?.Trim())) throw new MissingArgumentsException(nameof(data.Comment));
 
 			var task = await _db.Task.FindAsync(data.TaskId);
 			if (task == null) throw new NotFoundException("Couldn't find task");
@@ -53,7 +53,7 @@ namespace Repository
 			if (filter == null) return source;
 
 			bool filterByTask = filter.TaskId != default;
-			bool filterByPeriod = filter.CreatedBetween.HasValue;
+			bool filterByPeriod = filter.CreatedBetween?.HasValue == true;
 
 			Period period = filter.CreatedBetween;
 
