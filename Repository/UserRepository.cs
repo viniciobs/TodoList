@@ -10,7 +10,6 @@ using Repository.Interfaces_Commom;
 using Repository.Util;
 using System;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Repository
@@ -32,6 +31,8 @@ namespace Repository
 
 		public async Task<User> FindAsync(Guid id, bool? isActive = null)
 		{
+			if (id == null || id == default) throw new MissingArgumentsException(nameof(id));
+
 			var user = await _db.User.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && (isActive == null || x.IsActive == isActive.Value));
 			if (user == null) throw new NotFoundException(typeof(User));
 
@@ -41,6 +42,8 @@ namespace Repository
 		public async Task AlterUserRoleAsync(AlterUserRoleData data)
 		{
 			if (data == null) throw new MissingArgumentsException(nameof(data));
+			if (data.AuthenticatedUser == null || data.AuthenticatedUser == default) throw new MissingArgumentsException(nameof(data.AuthenticatedUser));
+			if (data.TargetUser == null || data.TargetUser == default) throw new MissingArgumentsException(nameof(data.TargetUser));
 
 			if (!Enum.IsDefined(typeof(UserRole), data.NewRole)) throw new MissingArgumentsException("New role is invalid");
 
@@ -52,14 +55,7 @@ namespace Repository
 			if (targetUser == null) throw new NotFoundException(typeof(User), "Target user not found");
 
 			authenticatedUser.AlterUserRole(targetUser, data.NewRole);
-		}				
-
-		public async Task<bool> ExistsAllAsync(Guid[] usersIds)
-		{
-			var resultQty = await _db.User.AsNoTracking().Where(x => usersIds.Contains(x.Id)).Select(x => x.Id).CountAsync();
-
-			return resultQty == usersIds.Length;
-		}
+		}						
 	
 		public IQueryable<User> ApplyFilter(IQueryable<User> source, UserFilter filter)
 		{

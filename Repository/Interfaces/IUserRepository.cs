@@ -12,6 +12,5 @@ namespace Repository.Interfaces
 		public Task<PaginationResult<UserResult>> GetAsync(UserFilter filter);
 		public Task<User> FindAsync(Guid id, bool? isActive = null);
 		public Task AlterUserRoleAsync(AlterUserRoleData data);
-		public Task<bool> ExistsAllAsync(Guid[] usersIds);
 	}
 }
