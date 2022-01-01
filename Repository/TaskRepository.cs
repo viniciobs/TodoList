@@ -54,6 +54,10 @@ namespace Repository
 
 		public async Task FinishAsync(UserTask data)
 		{
+			if (data == null) throw new MissingArgumentsException(nameof(data));
+			if (data.TaskId == null || data.TaskId == default) throw new MissingArgumentsException(nameof(data.TaskId));
+			if (data.User == null) throw new MissingArgumentsException(nameof(data.User));
+			
 			var task = await _db.Task.SingleOrDefaultAsync(x => x.Id == data.TaskId);
 			if (task == null) throw new NotFoundException(typeof(Domains.User.Task));
 
@@ -67,6 +71,10 @@ namespace Repository
 		
 		public async Task ReopenAsync(UserTask data)
 		{
+			if (data == null) throw new MissingArgumentsException(nameof(data));
+			if (data.TaskId == null || data.TaskId == default) throw new MissingArgumentsException(nameof(data.TaskId));
+			if (data.User == null) throw new MissingArgumentsException(nameof(data.User));
+
 			var task = await _db.Task.SingleOrDefaultAsync(x => x.Id == data.TaskId);
 			if (task == null) throw new NotFoundException(typeof(User.Task));
 
@@ -78,7 +86,7 @@ namespace Repository
 			if (filter == null) return source;
 
 			bool filterByStatus = filter.Completed.HasValue;
-			bool filterByCompletedPeriod = filter.CompletedBetween.HasValue;
+			bool filterByCompletedPeriod = filter.CompletedBetween?.HasValue == true;
 			bool filterByCreatorUser = filter.CreatorUser.HasValue;
 			bool filterByTargetUser = filter.TargetUser.HasValue;
 

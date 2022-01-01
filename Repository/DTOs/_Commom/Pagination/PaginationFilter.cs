@@ -2,8 +2,8 @@
 {
 	public abstract class PaginationFilter
 	{
-		const int DEFAULT_PAGE = 1;
-		const int DEFAULT_ITEMS_PER_PAGE = 5;
+		public static readonly int DefaultPage = 1;
+		public static readonly int DefaultItemsPerPage = 5;
 
 		private int _page;
 		private int _itemsPerPage;
@@ -13,7 +13,7 @@
 			get 
 			{
 				if (_page <= 0)
-					_page = DEFAULT_PAGE;
+					_page = DefaultPage;
 
 				return _page;
 			}
@@ -28,7 +28,7 @@
 			get
 			{
 				if (_itemsPerPage <= 0)
-					_itemsPerPage = DEFAULT_ITEMS_PER_PAGE;
+					_itemsPerPage = DefaultItemsPerPage;
 
 				return _itemsPerPage;
 			}

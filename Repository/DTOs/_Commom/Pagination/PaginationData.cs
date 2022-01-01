@@ -27,10 +27,10 @@ namespace Repository.DTOs._Commom.Pagination
 
 		public PaginationData(PaginationFilter paginationFilter, int total)
 		{
-			CurrentPage = paginationFilter.Page;
+			CurrentPage = paginationFilter?.Page ?? PaginationFilter.DefaultPage;
 			HasPrev = CurrentPage > 1;
 			TotalItems = total;
-			LastPage = (int)Math.Ceiling((decimal)total / paginationFilter.ItemsPerPage);
+			LastPage = (int)Math.Ceiling((decimal)total / paginationFilter?.ItemsPerPage ?? PaginationFilter.DefaultItemsPerPage);
 			HasNext = CurrentPage < LastPage;
 		}
 	}
