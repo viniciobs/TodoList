@@ -2,6 +2,7 @@ using Domains;
 using Domains.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Repository.DTOs.Accounts;
+using Repository.Tests.Base;
 using Repository.Tests.Seed;
 using System;
 using System.Linq;
@@ -9,33 +10,24 @@ using System.Linq;
 namespace Repository.Tests
 {
 	[TestClass]
-	public class AccountsTest
+	public class AccountsTest : RepositoryTestBase
 	{
 		[TestMethod]
 		public void TestCreateAccountThrowDuplicateLoginException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
-			var user1 = new CreateAccountData()
-			{
-				Login = "princeOfDarkness",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
-
-			repository.CreateAsync(user1).Wait();
+			// Act
+			var accountData = GetValidCreateAccountData();;
+			
+			repository.CreateAsync(accountData).Wait();
 			repository.SaveChangesAsync().Wait();
 
-			var user2 = new CreateAccountData()
-			{
-				Login = "princeOfDarkness",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
+			var resultException = repository.CreateAsync(accountData).Exception.InnerException;
 
-			var resultException = repository.CreateAsync(user2).Exception.InnerException;
-
+			// Assert
 			Assert.AreEqual(typeof(RuleException), resultException.GetType());
 
 			context.Dispose();
@@ -44,59 +36,81 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestCreateAccountThrowMissingArgumentsException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
+			// Act
 			CreateAccountData data = null;
 			Exception resultException;
 
 			resultException = repository.CreateAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
+			// Act
 			data = new CreateAccountData();
 
 			resultException = repository.CreateAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
-			data.Login = "";
-			data.Name = "";
-			data.Password = "";
+			// Act
+			data.Login = EmptyLogin;
+			data.Name = EmptyName;
+			data.Password = EmptyPassword;
 
 			resultException = repository.CreateAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
+			// Act
 			data.Login = "  ";
 			data.Name = "   ";
 			data.Password = " ";
 
 			resultException = repository.CreateAsync(data).Exception.InnerException;
+			
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
+			// Act
 			data = new CreateAccountData()
 			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne"
+				Login = GenerateRandomString(),
+				Name = GenerateRandomString()
 			};
 
 			resultException = repository.CreateAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
+			// Act
 			data = new CreateAccountData()
 			{
-				Name = "Ozzy Osbourne",
-				Password = "1234"
+				Name = GenerateRandomString(),
+				Password = GenerateRandomString()
 			};
 
 			resultException = repository.CreateAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
+			// Act
 			data = new CreateAccountData()
 			{
-				Login = "ozzy",
-				Password = "1234"
+				Login = GenerateRandomString(),
+				Password = GenerateRandomString()
 			};
 
 			resultException = repository.CreateAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
 			context.Dispose();
@@ -105,19 +119,17 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestCreateAccountOk()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
-			var data = new CreateAccountData()
-			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
+			// Act
+			var data = GetValidCreateAccountData();
 
 			var userId = repository.CreateAsync(data).Result;			
 			repository.SaveChangesAsync().Wait();
 
+			// Assert
 			Assert.IsNotNull(context.User.SingleOrDefault(x => x.Id == userId));
 
 			context.Dispose();
@@ -126,11 +138,14 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestDeleteAccountThrowNotFoundException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
+			// Act
 			var resultException = repository.DeleteAsync(Guid.NewGuid()).Exception.InnerException;
 
+			// Assert
 			Assert.AreEqual(typeof(NotFoundException), resultException.GetType());
 
 			context.Dispose();
@@ -139,24 +154,24 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestDeleteAccountOk()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
-			var data = new CreateAccountData()
-			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
+			// Act
+			var data = GetValidCreateAccountData();
 
 			var userId = repository.CreateAsync(data).Result;
 			repository.SaveChangesAsync().Wait();
 
+			// Assert
 			Assert.IsNotNull(context.User.SingleOrDefault(x => x.Id == userId));
 
+			// Act
 			repository.DeleteAsync(userId).Wait();
 			repository.SaveChangesAsync().Wait();
 
+			// Assert
 			Assert.IsNull(context.User.SingleOrDefault(x => x.Id == userId));
 
 			context.Dispose();
@@ -165,36 +180,52 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestccountAuthenticateThrowMissingArgumentsException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
+			// Act
 			Exception resultException;
 			AuthenticationData account = null;			
 
 			resultException = repository.AuthenticateAsync(account).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
+			// Act
 			account = new AuthenticationData();
 
 			resultException = repository.AuthenticateAsync(account).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
-			account.Login = "";
-			account.Password = "";
+			// Act
+			account.Login = NullLogin;
+			account.Password = NullPassword;
 
 			resultException = repository.AuthenticateAsync(account).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
-			account.Login = "ozzy";
-			account.Password = null;
+			// Act
+			account.Login = GenerateRandomString();
+			account.Password = NullPassword;
 
 			resultException = repository.AuthenticateAsync(account).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
-			account.Login = null;
-			account.Password = "1234";
+			// Act
+			account.Login = NullLogin;
+			account.Password = GenerateRandomString();
 
 			resultException = repository.AuthenticateAsync(account).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
 			context.Dispose();
@@ -203,16 +234,20 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestAccountAuthenticateThrowNotFoundException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
+			// Act
 			AuthenticationData account = new AuthenticationData()
 			{
-				Login = "ozzy",
-				Password = "1234"
+				Login = GenerateRandomString(),
+				Password = GenerateRandomString()
 			};
 
 			var resultException = repository.AuthenticateAsync(account).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(NotFoundException), resultException.GetType());
 
 			context.Dispose();
@@ -221,27 +256,25 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestAccountAuthenticateOk()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
-			var createAccountData = new CreateAccountData()
-			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
+			// Act
+			var createAccountData = GetValidCreateAccountData();
 			
 			repository.CreateAsync(createAccountData).Wait();
 			repository.SaveChangesAsync().Wait();
 
 			AuthenticationData authenticateData = new AuthenticationData()
 			{
-				Login = "ozzy",
-				Password = "1234"
+				Login = createAccountData.Login,
+				Password = createAccountData.Password
 			};
 
 			var authenticationResult = repository.AuthenticateAsync(authenticateData).Result;
 
+			// Assert
 			Assert.IsNotNull(authenticationResult);
 			
 			Assert.IsTrue(authenticationResult.UserId != default);
@@ -257,12 +290,15 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestAccountAlterStatusThrowNotFoundException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
+			// Act
 			var invalidUserId = Guid.NewGuid();
 			var resultException = repository.AlterStatusAsync(invalidUserId, false).Exception.InnerException;
 
+			// Assert
 			Assert.AreEqual(resultException.GetType(), typeof(NotFoundException));
 
 			context.Dispose();
@@ -271,31 +307,33 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestAccountAlterStatusOk()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 		
-			var createAccountData = new CreateAccountData()
-			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
+			// Act
+			var createAccountData = GetValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createAccountData).Result;
 			repository.SaveChangesAsync().Wait();
 
 			var user = context.User.Single(x => x.Id == userId);
 
+			// Assert
 			Assert.IsTrue(user.IsActive);
 
+			// Act
 			repository.AlterStatusAsync(user.Id, false).Wait();
 			repository.SaveChangesAsync().Wait();
 
+			// Assert
 			Assert.IsFalse(user.IsActive);
 
+			// Act
 			repository.AlterStatusAsync(user.Id, true).Wait();
 			repository.SaveChangesAsync().Wait();
 
+			// Assert
 			Assert.IsTrue(user.IsActive);
 
 			context.Dispose();
@@ -304,15 +342,12 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestAccountEditThrowMissingArgumentException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
-			var createAccountData = new CreateAccountData()
-			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
+			// Act
+			var createAccountData = GetValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createAccountData).Result;
 			repository.SaveChangesAsync().Wait();
@@ -323,16 +358,19 @@ namespace Repository.Tests
 			Exception resultException;
 
 			resultException = repository.EditAsync(user, editData).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
+			// Act and assert
 			try
 			{
 				editData = new EditData();
 
 				repository.EditAsync(user, editData).Wait();
 				
-				editData.Login = "";
-				editData.Name = "";
+				editData.Login = EmptyLogin;
+				editData.Name = EmptyName;
 
 				repository.EditAsync(user, editData).Wait();
 
@@ -353,37 +391,31 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestAccountEditThrowDuplicateLoginException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
-			var createUser1 = new CreateAccountData()
-			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
+			// Act
+			var createUser1 = GetValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createUser1).Result;
 			repository.SaveChangesAsync().Wait();
 
-			var createUser2 = new CreateAccountData()
-			{
-				Login = "zakk",
-				Name = "Zakk Wylde",
-				Password = "1234"
-			};
+			var createUser2 = GetValidCreateAccountData();
 
 			var user2Id = repository.CreateAsync(createUser2).Result;
 			repository.SaveChangesAsync().Wait();
 
 			var editData = new EditData()
 			{
-				Login = "ozzy"
+				Login = createUser1.Login
 			};
 
 			var user2 = context.User.Single(x => x.Id == user2Id);
 
 			var resultException = repository.EditAsync(user2, editData).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(RuleException), resultException.GetType());
 			
 			context.Dispose();
@@ -392,25 +424,19 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestAccountEditThrowUnauthorizeException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
-			var repository = new AccountRepository(context);
+			var repository = new AccountRepository(context);								
 
-			var createData = new CreateAccountData()
-			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
-
-			repository.CreateAsync(createData).Wait();
-			repository.SaveChangesAsync().Wait();			
-
+			// Act
 			var editData = new EditData()
 			{
-				Login = "princeOfDarkness"
+				Login = ValidLogin
 			};
 
 			var resultException = repository.EditAsync(null, editData).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(UnauthorizeException), resultException.GetType());
 
 			context.Dispose();
@@ -419,15 +445,12 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestAccountEditOk()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
-			var createData = new CreateAccountData()
-			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
+			// Act
+			var createData = GetValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createData).Result;
 			repository.SaveChangesAsync().Wait();
@@ -436,26 +459,33 @@ namespace Repository.Tests
 
 			var editData = new EditData()
 			{
-				Login = "princeOfDarkness"
+				Login = ValidLogin
 			};
 
+			// Assert
 			Assert.AreNotEqual(user.Login, editData.Login);
 
+			// Act
 			repository.EditAsync(user, editData).Wait();
 			repository.SaveChangesAsync().Wait();
 
+			// Assert
 			Assert.AreEqual(user.Login, editData.Login);
 
+			// Act
 			editData = new EditData()
 			{
-				Name = "John Michael Osbourne"
+				Name = ValidName
 			};
 
+			// Assert
 			Assert.AreNotEqual(user.Name, editData.Name);
 
+			// Act
 			repository.EditAsync(user, editData).Wait();
 			repository.SaveChangesAsync().Wait();
 
+			// Assert
 			Assert.AreEqual(user.Name, editData.Name);
 
 			context.Dispose();
@@ -465,15 +495,12 @@ namespace Repository.Tests
 		[TestMethod]
 		public void TestAccountChangePasswordThrowMissingArgumentException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
-			var createData = new CreateAccountData()
-			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
+			// Act
+			var createData = GetValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createData).Result;
 			repository.SaveChangesAsync().Wait();
@@ -482,68 +509,74 @@ namespace Repository.Tests
 
 			ChangePasswordData data = null;
 
+			// Assert
 			Assert.ThrowsException<MissingArgumentsException>(() => repository.ChangePassword(user, data));
 
+			// Act
 			data = new ChangePasswordData();
 			
+			// Assert
 			Assert.ThrowsException<MissingArgumentsException>(() => repository.ChangePassword(user, data));
 
-			data.NewPassword = "";
-			data.OldPassword = "";
+			// Act
+			data.NewPassword = EmptyPassword;
+			data.OldPassword = EmptyPassword;
 
+			// Assert
 			Assert.ThrowsException<MissingArgumentsException>(() => repository.ChangePassword(user, data));
 
+			// Act
 			data.NewPassword = "    ";
 			data.OldPassword = "       ";
 
+			// Assert
 			Assert.ThrowsException<MissingArgumentsException>(() => repository.ChangePassword(user, data));
 
-			data.NewPassword = "1234";
+			// Act
+			data.NewPassword = ValidPassword;
 			data.OldPassword = "       ";
 
+			// Assert
 			Assert.ThrowsException<MissingArgumentsException>(() => repository.ChangePassword(user, data));
 
+			// Act
 			data.NewPassword = "    ";
-			data.OldPassword ="1234";
+			data.OldPassword = ValidPassword;
 
+			// Assert
 			Assert.ThrowsException<MissingArgumentsException>(() => repository.ChangePassword(user, data));
 		}
 
 		[TestMethod]
 		public void TestAccountChangePasswordThrowUnauthorizedException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
-			var createData = new CreateAccountData()
-			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
+			// Act
+			var createData = GetValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createData).Result;
 			repository.SaveChangesAsync().Wait();			
 
 			ChangePasswordData data = new ChangePasswordData();
-			data.NewPassword = "123456";
-			data.OldPassword = "1234";
+			data.NewPassword = ValidPassword;
+			data.OldPassword = createData.Password;
 
+			// Assert
 			Assert.ThrowsException<UnauthorizeException>(() => repository.ChangePassword(null, data));			
 		}
 
 		[TestMethod]
 		public void TestAccountChangePasswordInvalidOldPasswordException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
-			var createData = new CreateAccountData()
-			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
+			// Act
+			var createData = GetValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createData).Result;
 			repository.SaveChangesAsync().Wait();
@@ -551,24 +584,22 @@ namespace Repository.Tests
 			var user = context.User.Single(x => x.Id == userId);
 
 			ChangePasswordData data = new ChangePasswordData();
-			data.NewPassword = "123456789";
-			data.OldPassword = "123456";
+			data.NewPassword = ValidPassword;
+			data.OldPassword = GenerateRandomString();
 
+			// Assert
 			Assert.ThrowsException<RuleException>(() => repository.ChangePassword(user, data));
 		}
 
 		[TestMethod]
 		public void TestAccountChangePasswordOk()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var repository = new AccountRepository(context);
 
-			var createData = new CreateAccountData()
-			{
-				Login = "ozzy",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			};
+			// Act
+			var createData = GetValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createData).Result;
 			repository.SaveChangesAsync().Wait();
@@ -576,14 +607,17 @@ namespace Repository.Tests
 			var user = context.User.Single(x => x.Id == userId);
 
 			ChangePasswordData data = new ChangePasswordData();
-			data.NewPassword = "123456789";
-			data.OldPassword = "1234";
+			data.NewPassword = ValidPassword;
+			data.OldPassword = createData.Password;
 
+			// Assert
 			Assert.AreNotEqual(user.Password, data.NewPassword);
 
+			// Act
 			repository.ChangePassword(user, data);
 			repository.SaveChangesAsync().Wait();
 
+			// Assert
 			Assert.AreEqual(user.Password, data.NewPassword);
 		}
 	}

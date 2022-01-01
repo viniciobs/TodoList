@@ -5,6 +5,7 @@ using Repository._Commom;
 using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Accounts;
 using Repository.DTOs.Users;
+using Repository.Tests.Base;
 using Repository.Tests.Seed;
 using System;
 using System.Linq;
@@ -12,58 +13,60 @@ using System.Linq;
 namespace Repository.Tests
 {
 	[TestClass]
-	public class UsersTest
+	public class UsersTest : RepositoryTestBase
 	{
 		[TestMethod]
 		public void TestGetUserByFilterOk()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
-			var accountRepository = new AccountRepository(context);			
+			var accountRepository = new AccountRepository(context);
+			var paginationRepository = new PaginationRepository(context);
+			var userRepository = new UserRepository(context, paginationRepository);
 
+			// Act
 			accountRepository.CreateAsync(new CreateAccountData()
 			{
 				Login = "princeOfDarkness",
 				Name = "Ozzy Osbourne",
-				Password = "1234"
+				Password = GenerateRandomString()
 			}).Wait();
 
 			accountRepository.CreateAsync(new CreateAccountData()
 			{
 				Login = "kelly",
 				Name = "Kelly Osbourne",
-				Password = "1234"
+				Password = GenerateRandomString()
 			}).Wait();
 
 			accountRepository.CreateAsync(new CreateAccountData()
 			{
 				Login = "niceVoice",
 				Name = "Eddie Vedder",
-				Password = "1234"
+				Password = GenerateRandomString()
 			}).Wait();			
 
 			var coreyId = accountRepository.CreateAsync(new CreateAccountData()
 			{
 				Login = "cmft",
 				Name = "Corey Taylor",
-				Password = "1234"
+				Password = GenerateRandomString()
 			}).Result;
 
 			var derrickId = accountRepository.CreateAsync(new CreateAccountData()
 			{
 				Login = "wrargh",
 				Name = "Derrick Green",
-				Password = "1234"
+				Password = GenerateRandomString()
 			}).Result;
 
+			// Act
 			accountRepository.SaveChangesAsync().Wait();
 
 			accountRepository.AlterStatusAsync(coreyId, false).Wait();
 			accountRepository.AlterStatusAsync(derrickId, false).Wait();
 
-			accountRepository.SaveChangesAsync().Wait();
-
-			var paginationRepository = new PaginationRepository(context);
-			var userRepository = new UserRepository(context, paginationRepository);
+			accountRepository.SaveChangesAsync().Wait();			
 
 			UserFilter filter;
 			PaginationResult<UserResult> result;
@@ -75,8 +78,10 @@ namespace Repository.Tests
 
 			result = userRepository.GetAsync(filter).Result;
 
+			// Assert
 			Assert.IsTrue(Enumerable.SequenceEqual(result.Data.Select(x => x.Name), new[] { "Kelly Osbourne", "Ozzy Osbourne" }));
 
+			// Act
 			filter = new UserFilter()
 			{
 				Name = "gReEn"
@@ -84,8 +89,11 @@ namespace Repository.Tests
 
 			result = userRepository.GetAsync(filter).Result;
 
+			// Assert
 			Assert.IsTrue(Enumerable.SequenceEqual(result.Data.Select(x => x.Name), new[] { "Derrick Green" }));
 
+
+			// Act
 			filter = new UserFilter()
 			{
 				Login = "CMFT"
@@ -93,8 +101,10 @@ namespace Repository.Tests
 
 			result = userRepository.GetAsync(filter).Result;
 
+			// Assert
 			Assert.IsTrue(Enumerable.SequenceEqual(result.Data.Select(x => x.Name), new[] { "Corey Taylor" }));
 
+			// Act
 			filter = new UserFilter()
 			{
 				Login = "CMFT",
@@ -103,8 +113,10 @@ namespace Repository.Tests
 
 			result = userRepository.GetAsync(filter).Result;
 
+			// Assert
 			Assert.IsTrue(result.Data.Count() == 0);
 
+			// Act
 			filter = new UserFilter()
 			{
 				IsActive = false
@@ -112,8 +124,10 @@ namespace Repository.Tests
 
 			result = userRepository.GetAsync(filter).Result;
 
+			// Assert
 			Assert.IsTrue(Enumerable.SequenceEqual(result.Data.Select(x => x.Name), new[] { "Corey Taylor", "Derrick Green" }));
 
+			// Act
 			filter = new UserFilter()
 			{
 				IsActive = true
@@ -121,188 +135,233 @@ namespace Repository.Tests
 
 			result = userRepository.GetAsync(filter).Result;
 
+			// Assert
 			Assert.IsFalse(result.Data.Select(x => x.Name).Intersect(new[] { "Corey Taylor", "Derrick Green" }).Any());
+
+			context.Dispose();
 		}
 
 		[TestMethod]
 		public void TestFindUserThrowMissingArgumentException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;			
 			var paginationRepository = new PaginationRepository(context);
 			var userRepository = new UserRepository(context, paginationRepository);
 
+			// Act
 			var resultException = userRepository.FindAsync(default).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
+
+			context.Dispose();
 		}
 
 		[TestMethod]
 		public void TestFindUserOk()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var accountRepository = new AccountRepository(context);
-
-			var ozzyId = accountRepository.CreateAsync(new CreateAccountData()
-			{
-				Login = "princeOfDarkness",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			}).Result;
-
-			accountRepository.SaveChangesAsync().Wait();
-
 			var paginationRepository = new PaginationRepository(context);
 			var userRepository = new UserRepository(context, paginationRepository);
 
-			Assert.IsNotNull(userRepository.FindAsync(ozzyId).Result);
-			Assert.IsNotNull(userRepository.FindAsync(ozzyId, true).Result);
+			// Act
+			var someUserId = accountRepository.CreateAsync(GetValidCreateAccountData()).Result;
 
-			var resultException = userRepository.FindAsync(ozzyId, false).Exception.InnerException;
+			accountRepository.SaveChangesAsync().Wait(); 
+			
+			var someUser = context.User.Single(x => x.Id == someUserId);			
+			
+			// Assert
+			Assert.IsNotNull(userRepository.FindAsync(someUserId).Result);
+			Assert.IsNotNull(userRepository.FindAsync(someUserId, true).Result);
+
+			// Act
+			var resultException = userRepository.FindAsync(someUserId, false).Exception.InnerException;
+			
+			// Assert
 			Assert.AreEqual(typeof(NotFoundException), resultException.GetType());
 
-			accountRepository.AlterStatusAsync(ozzyId, false).Wait();
+			// Act
+			accountRepository.AlterStatusAsync(someUserId, false).Wait();
 			accountRepository.SaveChangesAsync().Wait();
 
-			Assert.IsNotNull(userRepository.FindAsync(ozzyId, false).Result);
+			// Assert
+			Assert.IsNotNull(userRepository.FindAsync(someUserId, false).Result);
 
-			var coreyId = accountRepository.CreateAsync(new CreateAccountData()
-			{
-				Login = "cmft",
-				Name = "Corey Taylor",
-				Password = "1234"
-			}).Result;
+			// Act
+			var anotherUserId = accountRepository.CreateAsync(GetValidCreateAccountData()).Result;
 
 			accountRepository.SaveChangesAsync().Wait();
 
-			var result = userRepository.FindAsync(coreyId).Result;
-			Assert.AreNotEqual(result.Name, "Ozzy Osbourne");
-			Assert.AreEqual(result.Name, "Corey Taylor");
+			var anotherUser = context.User.Single(x => x.Id == anotherUserId);
+
+			var result = userRepository.FindAsync(anotherUserId).Result;
+
+			// Assert
+			Assert.AreNotEqual(result.Name, someUser.Name);
+			Assert.AreEqual(result.Name, anotherUser.Name);
+
+			context.Dispose();
 		}
 
 		[TestMethod]
 		public void TestAlterUserRoleThrowMissingArgumentException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var paginationRepository = new PaginationRepository(context);
 			var userRepository = new UserRepository(context, paginationRepository);
 
+			// Act
 			Exception resultException;
 			AlterUserRoleData data = null;
 			
 			resultException = userRepository.AlterUserRoleAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
+			// Act
 			data = new AlterUserRoleData();
-
 			resultException = userRepository.AlterUserRoleAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
+			// Act
 			data = new AlterUserRoleData();
 			data.TargetUser = default;
 			data.AuthenticatedUser = Guid.NewGuid();
 			
 			resultException = userRepository.AlterUserRoleAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
 
+			// Act
 			data = new AlterUserRoleData();
 			data.AuthenticatedUser = default;
 			data.TargetUser = Guid.NewGuid();
 
 			resultException = userRepository.AlterUserRoleAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(MissingArgumentsException), resultException.GetType());
+
+			context.Dispose();
 		}
 
 		[TestMethod]
 		public void TestAlterUserRoleThrowNotFoundException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var paginationRepository = new PaginationRepository(context);
+			var userRepository = new UserRepository(context, paginationRepository);
 
+			// Act
 			var adminUser = User.NewAdmin();
 			context.User.Add(adminUser);
 			context.SaveChanges();
-
-			var userRepository = new UserRepository(context, paginationRepository);
-
+			
 			Exception resultException;
-			AlterUserRoleData data;			
+			AlterUserRoleData data;
 
-			data = new AlterUserRoleData();
-			data.TargetUser = adminUser.Id;
-			data.AuthenticatedUser = Guid.NewGuid();
+			data = new AlterUserRoleData
+			{
+				TargetUser = adminUser.Id,
+				AuthenticatedUser = Guid.NewGuid()
+			};
 
 			resultException = userRepository.AlterUserRoleAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(NotFoundException), resultException.GetType());
 
+			// Act
 			data = new AlterUserRoleData();
 			data.AuthenticatedUser = adminUser.Id;
 			data.TargetUser = Guid.NewGuid();
 
 			resultException = userRepository.AlterUserRoleAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(NotFoundException), resultException.GetType());
+
+			context.Dispose();
 		}
 
 		[TestMethod]
 		public void TestAlterUserRoleThrowPermissionException()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var paginationRepository = new PaginationRepository(context);
 			var accountRepository = new AccountRepository(context);
-
-			var ozzyId = accountRepository.CreateAsync(new CreateAccountData()
-			{
-				Login = "princeOfDarkness",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			}).Result;
-
-			accountRepository.SaveChangesAsync().Wait();
-
 			var userRepository = new UserRepository(context, paginationRepository);
 
+			// Act
+			var userId = accountRepository.CreateAsync(GetValidCreateAccountData()).Result;
+
+			accountRepository.SaveChangesAsync().Wait();
+			
 			Exception resultException;
 			AlterUserRoleData data;
 
-			data = new AlterUserRoleData();
-			data.AuthenticatedUser = ozzyId;
-			data.TargetUser = Guid.NewGuid();
+			data = new AlterUserRoleData
+			{
+				AuthenticatedUser = userId,
+				TargetUser = Guid.NewGuid()
+			};
 
 			resultException = userRepository.AlterUserRoleAsync(data).Exception.InnerException;
+
+			// Assert
 			Assert.AreEqual(typeof(PermissionException), resultException.GetType());
+
+			context.Dispose();
 		}
 
 		[TestMethod]
 		public void TestAlterUserRoleOk()
 		{
+			// Arrange
 			var context = new FakeContext().DbContext;
 			var paginationRepository = new PaginationRepository(context);
 			var accountRepository = new AccountRepository(context);
+			var userRepository = new UserRepository(context, paginationRepository);
 
-			var userId = accountRepository.CreateAsync(new CreateAccountData()
-			{
-				Login = "princeOfDarkness",
-				Name = "Ozzy Osbourne",
-				Password = "1234"
-			}).Result;
+			// Act
+			var userId = accountRepository.CreateAsync(GetValidCreateAccountData()).Result;
+			
+			accountRepository.SaveChangesAsync().Wait();
 
+			var user = context.User.Single(x => x.Id == userId);
+			
+			// Assert
+			Assert.AreEqual(user.Role, UserRole.Normal);
+
+			// Act			
 			var adminUser = User.NewAdmin();
 			context.User.Add(adminUser);
 			context.SaveChanges();
-
-			var user = context.User.Single(x => x.Id == userId);
-
-			Assert.AreEqual(user.Role, UserRole.Normal);
-
-			var userRepository = new UserRepository(context, paginationRepository);
-
-			AlterUserRoleData data;
-
-			data = new AlterUserRoleData();
-			data.AuthenticatedUser = adminUser.Id;
-			data.TargetUser = userId;
+				
+			var data = new AlterUserRoleData
+			{
+				AuthenticatedUser = adminUser.Id,
+				TargetUser = userId
+			};
 
 			userRepository.AlterUserRoleAsync(data).Wait();
+			userRepository.SaveChangesAsync().Wait();
 
+			// Assert
 			Assert.AreEqual(user.Role, UserRole.Admin);
+
+			context.Dispose();
 		}
 	}
 }

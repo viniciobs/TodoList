@@ -5,7 +5,7 @@ using System.Linq;
 namespace Domains.Tests
 {
 	[TestClass]
-	public class TaskCommentsTest : TestBase
+	public class TaskCommentsTest : DomainTestBase
 	{
 		[TestMethod]
 		public void TestAddTaskThrowMissingArgumentsException()

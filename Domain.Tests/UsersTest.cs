@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Domains.Tests
 {
 	[TestClass]
-	public class UsersTest : TestBase
+	public class UsersTest : DomainTestBase
 	{
 		[TestMethod]
 		public void TestUserCreationThrowMissingArgumentsException()

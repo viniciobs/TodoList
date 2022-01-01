@@ -37,8 +37,8 @@ namespace Repository
 			if (user == null) throw new UnauthorizeException();
 			if (data == null) throw new MissingArgumentsException(nameof(data));
 			if (string.IsNullOrEmpty(data.OldPassword?.Trim())) throw new MissingArgumentsException(data.OldPassword);
-			if (user.Password != data.OldPassword?.Trim()) throw new RuleException("Old password is wrong");
 			if (string.IsNullOrEmpty(data.NewPassword?.Trim())) throw new MissingArgumentsException(data.NewPassword);						
+			if (user.Password != data.OldPassword?.Trim()) throw new RuleException("Old password is wrong");
 
 			user.SetPassword(data.NewPassword);
 			_db.Update(user);

@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Domains.Tests
 {
 	[TestClass]
-	public class TasksTest : TestBase
+	public class TasksTest : DomainTestBase
 	{
 		[TestMethod]
 		public void TestSetTaskThrowsMissingArgumentsException()

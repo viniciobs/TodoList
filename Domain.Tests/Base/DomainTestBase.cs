@@ -3,7 +3,7 @@ using Task = Domains.User.Task;
 
 namespace Domains.Tests
 {
-	public abstract class TestBase
+	public abstract class DomainTestBase
 	{
 		// Arrange
 
