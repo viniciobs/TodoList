@@ -20,7 +20,7 @@ namespace Repository.Tests
 			var repository = new AccountRepository(context);
 
 			// Act
-			var accountData = GetValidCreateAccountData();;
+			var accountData = GenerateValidCreateAccountData();;
 			
 			repository.CreateAsync(accountData).Wait();
 			repository.SaveChangesAsync().Wait();
@@ -124,7 +124,7 @@ namespace Repository.Tests
 			var repository = new AccountRepository(context);
 
 			// Act
-			var data = GetValidCreateAccountData();
+			var data = GenerateValidCreateAccountData();
 
 			var userId = repository.CreateAsync(data).Result;			
 			repository.SaveChangesAsync().Wait();
@@ -159,7 +159,7 @@ namespace Repository.Tests
 			var repository = new AccountRepository(context);
 
 			// Act
-			var data = GetValidCreateAccountData();
+			var data = GenerateValidCreateAccountData();
 
 			var userId = repository.CreateAsync(data).Result;
 			repository.SaveChangesAsync().Wait();
@@ -261,7 +261,7 @@ namespace Repository.Tests
 			var repository = new AccountRepository(context);
 
 			// Act
-			var createAccountData = GetValidCreateAccountData();
+			var createAccountData = GenerateValidCreateAccountData();
 			
 			repository.CreateAsync(createAccountData).Wait();
 			repository.SaveChangesAsync().Wait();
@@ -312,7 +312,7 @@ namespace Repository.Tests
 			var repository = new AccountRepository(context);
 		
 			// Act
-			var createAccountData = GetValidCreateAccountData();
+			var createAccountData = GenerateValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createAccountData).Result;
 			repository.SaveChangesAsync().Wait();
@@ -347,7 +347,7 @@ namespace Repository.Tests
 			var repository = new AccountRepository(context);
 
 			// Act
-			var createAccountData = GetValidCreateAccountData();
+			var createAccountData = GenerateValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createAccountData).Result;
 			repository.SaveChangesAsync().Wait();
@@ -396,12 +396,12 @@ namespace Repository.Tests
 			var repository = new AccountRepository(context);
 
 			// Act
-			var createUser1 = GetValidCreateAccountData();
+			var createUser1 = GenerateValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createUser1).Result;
 			repository.SaveChangesAsync().Wait();
 
-			var createUser2 = GetValidCreateAccountData();
+			var createUser2 = GenerateValidCreateAccountData();
 
 			var user2Id = repository.CreateAsync(createUser2).Result;
 			repository.SaveChangesAsync().Wait();
@@ -450,7 +450,7 @@ namespace Repository.Tests
 			var repository = new AccountRepository(context);
 
 			// Act
-			var createData = GetValidCreateAccountData();
+			var createData = GenerateValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createData).Result;
 			repository.SaveChangesAsync().Wait();
@@ -500,7 +500,7 @@ namespace Repository.Tests
 			var repository = new AccountRepository(context);
 
 			// Act
-			var createData = GetValidCreateAccountData();
+			var createData = GenerateValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createData).Result;
 			repository.SaveChangesAsync().Wait();
@@ -555,7 +555,7 @@ namespace Repository.Tests
 			var repository = new AccountRepository(context);
 
 			// Act
-			var createData = GetValidCreateAccountData();
+			var createData = GenerateValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createData).Result;
 			repository.SaveChangesAsync().Wait();			
@@ -576,7 +576,7 @@ namespace Repository.Tests
 			var repository = new AccountRepository(context);
 
 			// Act
-			var createData = GetValidCreateAccountData();
+			var createData = GenerateValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createData).Result;
 			repository.SaveChangesAsync().Wait();
@@ -599,7 +599,7 @@ namespace Repository.Tests
 			var repository = new AccountRepository(context);
 
 			// Act
-			var createData = GetValidCreateAccountData();
+			var createData = GenerateValidCreateAccountData();
 
 			var userId = repository.CreateAsync(createData).Result;
 			repository.SaveChangesAsync().Wait();

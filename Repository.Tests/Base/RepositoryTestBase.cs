@@ -1,4 +1,5 @@
-﻿using Domains.Tests;
+﻿using Domains;
+using Domains.Tests;
 using Repository.DTOs.Accounts;
 
 namespace Repository.Tests.Base
@@ -7,7 +8,7 @@ namespace Repository.Tests.Base
 	{
 		// Arrange
 
-		protected CreateAccountData GetValidCreateAccountData()
+		protected CreateAccountData GenerateValidCreateAccountData()
 		{
 			var randomUser = GenerateRandomUser();
 			
@@ -21,6 +22,12 @@ namespace Repository.Tests.Base
 			return randomValidAccountData;
 		}
 
+		protected User GenerateDeactivatedUser()
+		{
+			var randomUser = GenerateRandomUser();
+			randomUser.Deactivate();
 
+			return randomUser;
+		}
 	}
 }

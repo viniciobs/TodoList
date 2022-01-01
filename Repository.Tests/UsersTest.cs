@@ -168,7 +168,7 @@ namespace Repository.Tests
 			var userRepository = new UserRepository(context, paginationRepository);
 
 			// Act
-			var someUserId = accountRepository.CreateAsync(GetValidCreateAccountData()).Result;
+			var someUserId = accountRepository.CreateAsync(GenerateValidCreateAccountData()).Result;
 
 			accountRepository.SaveChangesAsync().Wait(); 
 			
@@ -192,7 +192,7 @@ namespace Repository.Tests
 			Assert.IsNotNull(userRepository.FindAsync(someUserId, false).Result);
 
 			// Act
-			var anotherUserId = accountRepository.CreateAsync(GetValidCreateAccountData()).Result;
+			var anotherUserId = accountRepository.CreateAsync(GenerateValidCreateAccountData()).Result;
 
 			accountRepository.SaveChangesAsync().Wait();
 
@@ -304,7 +304,7 @@ namespace Repository.Tests
 			var userRepository = new UserRepository(context, paginationRepository);
 
 			// Act
-			var userId = accountRepository.CreateAsync(GetValidCreateAccountData()).Result;
+			var userId = accountRepository.CreateAsync(GenerateValidCreateAccountData()).Result;
 
 			accountRepository.SaveChangesAsync().Wait();
 			
@@ -335,7 +335,7 @@ namespace Repository.Tests
 			var userRepository = new UserRepository(context, paginationRepository);
 
 			// Act
-			var userId = accountRepository.CreateAsync(GetValidCreateAccountData()).Result;
+			var userId = accountRepository.CreateAsync(GenerateValidCreateAccountData()).Result;
 			
 			accountRepository.SaveChangesAsync().Wait();
 
