@@ -1,6 +1,7 @@
 ﻿using Domains.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Repository._Commom;
+using Repository.DTOs._Commom;
 using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Tasks;
 using Repository.Tests.Base;
@@ -151,6 +152,7 @@ namespace Repository.Tests
 			Assert.AreEqual(result.UserId, comment.CreatedByUserId);
 			Assert.AreNotEqual(result.CreatedAt, default);
 
+			context.Dispose();
 		}
 
 		[TestMethod]
@@ -246,6 +248,41 @@ namespace Repository.Tests
 
 			// Assert
 			Assert.AreEqual(result.Data.Count(), 1);
+
+			// Act
+			var date = DateTime.Today.AddDays(-2);
+
+			var comment1 = context.TaskComment.First();
+			comment1.AlterCreatedAt(date);
+
+			var comment2 = context.TaskComment.Last();
+			comment2.AlterCreatedAt(date);
+
+			context.TaskComment.UpdateRange(comment1, comment2);
+			context.SaveChanges();
+
+			filter = new TaskCommentFilter()
+			{
+				CreatedBetween = new Period(date.AddHours(-1), date.AddHours(1))				
+			};
+
+			result = taskCommentRepository.GetAsync(filter).Result;
+
+			// Assert
+			Assert.AreEqual(result.Data.Count(), 2);
+
+			// Act
+			filter = new TaskCommentFilter()
+			{
+				CreatedBetween = new Period(DateTime.Today, null)
+			};
+
+			result = taskCommentRepository.GetAsync(filter).Result;
+
+			// Assert
+			Assert.AreEqual(result.Data.Count(), 1);
+
+			context.Dispose();
 		}
 	}
 }

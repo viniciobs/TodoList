@@ -39,6 +39,15 @@ namespace Domains
 				{
 					return new TaskComment(task, creator, text);
 				}
+
+#if DEBUG
+				// Alter the CreatedAt property.
+				// Must be used only for tests purposes.				
+				public void AlterCreatedAt(DateTime date)
+				{
+					CreatedAt = date;
+				}
+#endif
 			}
 		}
 	}
