@@ -3,6 +3,7 @@ using Domains.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Repository._Commom;
 using Repository.DTOs._Commom;
+using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Tasks;
 using Repository.Tests.Base;
 using Repository.Tests.Seed;
@@ -506,12 +507,12 @@ namespace Repository.Tests
 				Description = GenerateRandomString()
 			}).Wait();
 
-			taskRepository.AssignAsync(new AssignTaskData()
+			var someTask = taskRepository.AssignAsync(new AssignTaskData()
 			{
 				CreatorUser = randomUser,
 				TargetUser = oneMoreRandomUser,
 				Description = GenerateRandomString()
-			}).Wait();
+			}).Result;
 
 			var randomTask = taskRepository.AssignAsync(new AssignTaskData()
 			{
@@ -553,6 +554,39 @@ namespace Repository.Tests
 			Assert.AreEqual(taskRepository.GetAsync(new TaskFilter() { Completed = true }).Result.Data.Count(), 2);
 			Assert.AreEqual(taskRepository.GetAsync(new TaskFilter() { Completed = false }).Result.Data.Count(), 2);
 			Assert.AreEqual(taskRepository.GetAsync(new TaskFilter() { Completed = null }).Result.Data.Count(), 4);
+
+			// Act
+			var date = DateTime.Today.AddDays(-2);
+
+			var task1 = context.Task.Single(x => x.Id == someTask.Id);
+			task1.AlterCompleteddAt(date);			
+
+			context.Task.UpdateRange(task1);
+			context.SaveChanges();
+
+			TaskFilter filter;
+			PaginationResult<TaskResult> result;
+
+			filter = new TaskFilter()
+			{
+				CompletedBetween = new Period(date.AddHours(-1), date.AddHours(1))
+			};
+
+			result = taskRepository.GetAsync(filter).Result;
+
+			// Assert
+			Assert.AreEqual(result.Data.Count(), 1);
+
+			// Act
+			filter = new TaskFilter()
+			{
+				CompletedBetween = new Period(DateTime.Today, null)
+			};
+
+			result = taskRepository.GetAsync(filter).Result;
+
+			// Assert
+			Assert.AreEqual(result.Data.Count(), 2);
 
 			context.Dispose();
 		}

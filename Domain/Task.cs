@@ -69,6 +69,16 @@ namespace Domains
 
 				return comment;
 			}
+
+
+#if DEBUG
+			// Alter the CompletedAt property.
+			// Must be used only for tests purposes.				
+			public void AlterCompleteddAt(DateTime date)
+			{
+				CompletedAt = date;
+			}
+#endif
 		}
 	}
 }
