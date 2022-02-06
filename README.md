@@ -12,9 +12,15 @@ All requests, except user creation, needs authentication and must send a token w
 
     Clone this repository, of course. ;D
 
-* AppSetting.json
-
-    Edit this file replacing the server, user and password within the "ConnectionStrings" part with your data.<br />
+* Settings
+> "ConnectionStrings": {
+		"ToDoListDB": "Server=<SERVER>;Database=ToDoList;User=<USER>;Password=<PASSWORD>;"
+	},
+	"Authentication": {
+		"Secret": "<KEY>"
+	}
+    
+    Add the above content to *usersecrets.json* file replacing the server, user and password within the "ConnectionStrings" part with your data.<br />
     Also replace <KEY> within the "Authentication" part with a secret key only your application must know.
     
 * Database
