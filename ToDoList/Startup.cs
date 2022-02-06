@@ -16,68 +16,80 @@ using ToDoList.UI.Configurations.ServicesConfigurations;
 
 namespace ToDoList.UI
 {
-	public class Startup
-	{
-		private IConfiguration configuration { get; }
+    public class Startup
+    {
+        private IConfiguration configuration { get; }
 
-		public Startup(IConfiguration configuration)
-		{
-			this.configuration = configuration;
-		}
+        public Startup(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
 
-		public void ConfigureServices(IServiceCollection services)
-		{
-			string connectionString = configuration.GetConnectionString("ToDoListDB");
-			
-			services.AddDbContext<DataAccess.ApplicationContext>(
-				options => options.UseSqlServer(connectionString)
-			);
+        public void ConfigureServices(IServiceCollection services)
+        {
+            string connectionString = configuration.GetConnectionString("ToDoListDB");
 
-			services.AddResponseCompression(options =>
-			{
-				options.EnableForHttps = true;
-				options.Providers.Add<GzipCompressionProvider>();
-				options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json" });
-			});
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowAnyOrigin();
+                });
+            });
 
-			services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters.Add(new StringEnumConverter()));
-			services.AddHttpContextAccessor();
+            services.AddDbContext<DataAccess.ApplicationContext>(
+                options => options.UseSqlServer(connectionString)
+            );
 
-			services.AddScoped<IAccountRepository, AccountRepository>();
-			services.AddScoped<IUserRepository, UserRepository>();
-			services.AddScoped<ITaskRepository, TaskRepository>();
-			services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
-			services.AddScoped<IPaginationRepository, PaginationRepository>();			
-			services.AddScoped<IHistoryRepository>(x => new HistoryRepository(x.GetRequiredService<ApplicationContext>(), connectionString));
+            services.AddResponseCompression(options =>
+            {
+                options.EnableForHttps = true;
+                options.Providers.Add<GzipCompressionProvider>();
+                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json" });
+            });
 
-			services.AddJwtAuthentication(configuration.GetSection("Authentication"));
-			services.AddSwagger(configuration);
-		}
+            services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters.Add(new StringEnumConverter()));
+            services.AddHttpContextAccessor();
 
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-		{
-			if (env.IsDevelopment())
-			{
-				app.UseDeveloperExceptionPage();
-			}
+            services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<ITaskRepository, TaskRepository>();
+            services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
+            services.AddScoped<IPaginationRepository, PaginationRepository>();
+            services.AddScoped<IHistoryRepository>(x => new HistoryRepository(x.GetRequiredService<ApplicationContext>(), connectionString));
 
-			app.UseSwagger();
-			app.UseSwaggerUI(options =>
-			{
-				options.SwaggerEndpoint($"/swagger/{Swagger.ACCOUNTS}/swagger.json", "Accounts");
-				options.SwaggerEndpoint($"/swagger/{Swagger.USERS}/swagger.json", "Users");
-				options.SwaggerEndpoint($"/swagger/{Swagger.TASKS}/swagger.json", "Tasks");
-				options.SwaggerEndpoint($"/swagger/{Swagger.TASK_COMMENTS}/swagger.json", "Task comments");
-			});
+            services.AddJwtAuthentication(configuration.GetSection("Authentication"));
+            services.AddSwagger(configuration);
+        }
 
-			app.UseHttpsRedirection();
-			app.UseRouting();
-			app.UseAuthentication();
-			app.UseAuthorization();
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
-			app.UseResponseCompression();
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint($"/swagger/{Swagger.ACCOUNTS}/swagger.json", "Accounts");
+                options.SwaggerEndpoint($"/swagger/{Swagger.USERS}/swagger.json", "Users");
+                options.SwaggerEndpoint($"/swagger/{Swagger.TASKS}/swagger.json", "Tasks");
+                options.SwaggerEndpoint($"/swagger/{Swagger.TASK_COMMENTS}/swagger.json", "Task comments");
+            });
 
-			app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-		}
-	}
+            app.UseHttpsRedirection();
+            app.UseRouting();
+            app.UseCors();
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseResponseCompression();
+
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        }
+    }
 }
