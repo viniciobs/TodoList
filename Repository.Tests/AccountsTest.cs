@@ -282,7 +282,7 @@ namespace Repository.Tests
 			// At this point authenticationResult.Token is not setten yet.
 			// Token must be validate in UI tests
 
-			Assert.IsFalse(string.IsNullOrEmpty(authenticationResult.UserName.Trim()));
+			Assert.IsFalse(string.IsNullOrEmpty(authenticationResult.Login.Trim()));
 
 			context.Dispose();
 		}
