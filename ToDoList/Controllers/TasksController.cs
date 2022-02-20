@@ -230,7 +230,7 @@ namespace ToDoList.UI.Controllers
 		}
 
 		/// <summary>
-		/// Finishi a task.
+		/// Finish a task.
 		/// Only creator or target user can finish a task.
 		/// </summary>
 		/// <param name="id">Task to be finished.</param>
