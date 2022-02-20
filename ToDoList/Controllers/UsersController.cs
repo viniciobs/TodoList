@@ -97,7 +97,9 @@ namespace ToDoList.UI.Controllers
 			{
 				bool? filterOnlyActive = null;
 
-				if (authenticatedUser.Role != UserRole.Admin)
+				if (authenticatedUser.Id == id)
+					filterOnlyActive = false;
+				else if (authenticatedUser.Role != UserRole.Admin)
 					filterOnlyActive = true;
 
 				var user = await _userRepo.FindAsync(id, filterOnlyActive);
