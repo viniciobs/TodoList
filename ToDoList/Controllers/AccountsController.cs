@@ -1,384 +1,346 @@
 ﻿using Domains;
-using Domains.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Repository.DTOs.Accounts;
 using Repository.DTOs.History;
-using Repository.DTOs.Users;
 using Repository.Interfaces;
 using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
-using ToDoList.UI.Configurations;
+using ToDoList.API.Services.TokenGenerator.Interfaces;
+using ToDoList.API.Services.TokenGenerator.Models;
 using ToDoList.UI.Controllers.Commom;
 
 namespace ToDoList.UI.Controllers
-{	
-	/// <summary>
-	/// Responsible class for account management
-	/// </summary>
-	[Produces("application/json")]
-	[Route("accounts")]
-	[ApiController]
-	[ApiExplorerSettings(GroupName = "accounts")]
-	public class AccountsController : ControllerBase
-	{
-		private readonly IAccountRepository _repo;
-		private readonly IHistoryRepository _historyRepo;
-		private readonly Authentication _authentication;
+{
+    /// <summary>
+    /// Responsible class for account management
+    /// </summary>
+    [Produces("application/json")]
+    [Route("accounts")]
+    [ApiController]
+    [ApiExplorerSettings(GroupName = "accounts")]
+    public class AccountsController : ControllerBase
+    {
+        private readonly IAccountRepository _repo;
+        private readonly IHistoryRepository _historyRepo;
 
-		public AccountsController(IAccountRepository repo, IHistoryRepository historyRepo, IOptions<Authentication> authentication)
-		{
-			_repo = repo;
-			_historyRepo = historyRepo;
-			_authentication = authentication.Value;
-		}
+        public AccountsController(IAccountRepository repo, IHistoryRepository historyRepo)
+        {
+            _repo = repo;
+            _historyRepo = historyRepo;
+        }
 
-		/// <summary>
-		/// Identify, authenticate and generate a token to a user.
-		/// The token will be available for the next 30 minutes.
-		/// </summary>
-		/// <param name="data">Necessary data to authenticate.</param>
-		/// <returns>If authenticated, return the user data.</returns>
-		[HttpPost]
-		[Route("Authenticate")]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<AuthenticationResult>> Authenticate(AuthenticationData data)
-		{			
-			AuthenticationResult authenticationResult;
+        /// <summary>
+        /// Identify, authenticate and generate a token to a user.
+        /// The token will be available for the next 30 minutes.
+        /// </summary>
+        /// <param name="data">Necessary data to authenticate.</param>
+        /// <returns>If authenticated, return the user data.</returns>
+        [HttpPost]
+        [Route("Authenticate")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<AuthenticationResult>> Authenticate(AuthenticationData data, [FromServices] ITokenGenerator tokenGenerator)
+        {
+            try
+            {
+                AuthenticationResult authenticationResult = await _repo.AuthenticateAsync(data);
 
-			try
-			{
-				authenticationResult = await _repo.AuthenticateAsync(data);
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
+                authenticationResult.Token = tokenGenerator.GenerateToken(ClaimsData.Convert(authenticationResult));
 
-			try
-			{
-				var tokenHandler = new JwtSecurityTokenHandler();
-				var key = Encoding.UTF8.GetBytes(_authentication.Secret);
-				var expireMinutes = 30;
+                await _repo.SaveChangesAsync();
 
-#if DEBUG
-				expireMinutes = 60 * 24;
-#endif
-				var tokenDescriptor = new SecurityTokenDescriptor
-				{
-					Subject = new ClaimsIdentity(new Claim[]
-					{
-						new Claim(ClaimTypes.Sid, authenticationResult.UserId.ToString()),
-						new Claim(ClaimTypes.Role, authenticationResult.Role.ToString())
-					}),
-					Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
-					SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-				};
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticationResult.UserId,
+                    Action = HistoryAction.Authenticated
+                };
 
-				var token = tokenHandler.CreateToken(tokenDescriptor);
-				authenticationResult.Token = tokenHandler.WriteToken(token);
+                _historyRepo.AddHistoryAsync(historyData);
 
-				await _repo.SaveChangesAsync();
+                return Ok(authenticationResult);
+            }
+            catch (Exception exception)
+            {
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticationResult.UserId,
-					Action = HistoryAction.Authenticated
-				};
+        /// <summary>
+        /// Validate, create and authenticate a new account.
+        /// </summary>
+        /// <param name="data">Necessary data to create an account.</param>
+        /// <returns>Account details.</returns>
+        [HttpPost]
+        [Route("New")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AuthenticationResult))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        public async Task<ActionResult<AuthenticationResult>> New([FromBody] CreateAccountData data, [FromServices] ITokenGenerator tokenGenerator)
+        {
+            try
+            {
+                await _repo.CreateAsync(data);
+                await _repo.SaveChangesAsync();
+            }
+            catch (Exception exception)
+            {
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
 
-				_historyRepo.AddHistoryAsync(historyData);
+            var authenticationData = new AuthenticationData()
+            {
+                Login = data.Login,
+                Password = data.Password
+            };
 
-				return Ok(authenticationResult);
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
-		}
+            var result = await Authenticate(authenticationData, tokenGenerator);
 
-		/// <summary>
-		/// Validate, create and authenticate a new account.
-		/// </summary>
-		/// <param name="data">Necessary data to create an account.</param>
-		/// <returns>Account details.</returns>
-		[HttpPost]
-		[Route("New")]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AuthenticationResult))]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		[ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-		public async Task<ActionResult<AuthenticationResult>> New([FromBody] CreateAccountData data)
-		{
-			try
-			{
-				await _repo.CreateAsync(data);
-				await _repo.SaveChangesAsync();
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
+            return StatusCode(StatusCodes.Status201Created, result);
+        }
 
-			var authenticationData = new AuthenticationData()
-			{
-				Login = data.Login,
-				Password = data.Password
-			};
+        /// <summary>
+        /// Change a user password.
+        /// </summary>
+        /// <param name="data">Necessary data to change the user's password.</param>
+        [Authorize]
+        [HttpPatch]
+        [Route("ChangePassword")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ChangePassword(
+            [FromBody] ChangePasswordData data,
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserRepository userRepository
+            )
+        {
+            try
+            {
+                var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
 
-			var result = await Authenticate(authenticationData);
+                _repo.ChangePassword(authenticatedUser, data);
+                await _repo.SaveChangesAsync();
 
-			return StatusCode(StatusCodes.Status201Created, result);
-		}
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.PasswordChanged
+                };
 
-		/// <summary>
-		/// Change a user password.
-		/// </summary>
-		/// <param name="data">Necessary data to change the user's password.</param>
-		[Authorize]
-		[HttpPatch]
-		[Route("ChangePassword")]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		[ProducesResponseType(StatusCodes.Status409Conflict)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> ChangePassword(
-			[FromBody] ChangePasswordData data,
-			[FromServices] IHttpContextAccessor httpContextAccessor,
-			[FromServices] IUserRepository userRepository
-			)
-		{
-			try
-			{
-				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+                _historyRepo.AddHistoryAsync(historyData);
 
-				_repo.ChangePassword(authenticatedUser, data);
-				await _repo.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.PasswordChanged
-				};
+        /// <summary>
+        /// Delete a user.
+        /// Only users with admin roles can delete a user.
+        /// </summary>
+        /// <param name="id">User id.</param>
+        [Authorize]
+        [HttpDelete]
+        [Route("{id:Guid}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Delete(
+            [FromRoute] Guid id,
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserRepository userRepository)
+        {
+            try
+            {
+                var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
 
-				_historyRepo.AddHistoryAsync(historyData);
+                await _repo.DeleteAsync(id);
+                await _repo.SaveChangesAsync();
 
-				return NoContent();
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}			
-		}
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.DeletedAccount,
+                    Content = new { deleted = id }
+                };
 
-		/// <summary>
-		/// Delete a user.
-		/// Only users with admin roles can delete a user.
-		/// </summary>
-		/// <param name="id">User id.</param>
-		[Authorize]
-		[HttpDelete]
-		[Route("{id:Guid}")]
-		[Authorize(Roles = "Admin")]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> Delete(
-			[FromRoute] Guid id,
-			[FromServices] IHttpContextAccessor httpContextAccessor,
-			[FromServices] IUserRepository userRepository)
-		{
-			try
-			{
-				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+                _historyRepo.AddHistoryAsync(historyData);
+            }
+            catch (Exception exception)
+            {
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
 
-				await _repo.DeleteAsync(id);
-				await _repo.SaveChangesAsync();
+            #region TODO
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.DeletedAccount,
-					Content = new { deleted = id }
-				};
+            //var strategy = context.Database.CreateExecutionStrategy();
 
-				_historyRepo.AddHistoryAsync(historyData);
+            //await strategy.ExecuteAsync(async () =>
+            //{
+            //	await using var transaction = await context.Database.BeginTransactionAsync();
 
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
+            //	try
+            //	{
+            //		var targetTasks = context.Entry(user).Collection(x => x.TargetTasks).Query().Select(x => x);
+            //		context.Task.RemoveRange(targetTasks);
 
-			#region TODO
+            //		var createdTasks = context.Entry(user).Collection(x => x.CreatedTasks).Query().Select(x => x);
+            //		context.Task.RemoveRange(createdTasks);
 
-			//var strategy = context.Database.CreateExecutionStrategy();
+            //		context.User.Remove(user);
 
-			//await strategy.ExecuteAsync(async () =>
-			//{
-			//	await using var transaction = await context.Database.BeginTransactionAsync();
+            //		await context.SaveChangesAsync();
+            //		await transaction.CommitAsync();
+            //	}
+            //	catch (Exception exception)
+            //	{
+            //		throw new ApplicationException("Could not delete user. \n" + exception.Message);
+            //	}
+            //});
 
-			//	try
-			//	{
-			//		var targetTasks = context.Entry(user).Collection(x => x.TargetTasks).Query().Select(x => x);
-			//		context.Task.RemoveRange(targetTasks);
+            #endregion TODO
 
-			//		var createdTasks = context.Entry(user).Collection(x => x.CreatedTasks).Query().Select(x => x);
-			//		context.Task.RemoveRange(createdTasks);
+            return NoContent();
+        }
 
-			//		context.User.Remove(user);
+        /// <summary>
+        /// Activate an account.
+        /// </summary>
+        [Authorize]
+        [HttpPatch]
+        [Route("Activate")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Activate(
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserRepository userRepository)
+        {
+            try
+            {
+                var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
 
-			//		await context.SaveChangesAsync();
-			//		await transaction.CommitAsync();
-			//	}
-			//	catch (Exception exception)
-			//	{
-			//		throw new ApplicationException("Could not delete user. \n" + exception.Message);
-			//	}
-			//});
+                await _repo.AlterStatusAsync(authenticatedUser.Id, true);
+                await _repo.SaveChangesAsync();
 
-			#endregion TODO
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.ActivatedAccount
+                };
 
-			return NoContent();
-		}
-		
-		/// <summary>
-		/// Activate an account.
-		/// </summary>
-		[Authorize]
-		[HttpPatch]
-		[Route("Activate")]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> Activate(
-			[FromServices] IHttpContextAccessor httpContextAccessor,
-			[FromServices] IUserRepository userRepository)
-		{
-			try
-			{
-				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
-				
-				await _repo.AlterStatusAsync(authenticatedUser.Id, true);
-				await _repo.SaveChangesAsync();
+                _historyRepo.AddHistoryAsync(historyData);
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.ActivatedAccount
-				};
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
 
-				_historyRepo.AddHistoryAsync(historyData);
-			
-				return NoContent();
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
-		}
+        /// <summary>
+        /// Deactivate an account.
+        /// If the account has one or more pending tasks, it can't be deactivated.
+        /// </summary>
+        [Authorize]
+        [HttpPatch]
+        [Route("Deactivate")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Deactivate(
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserRepository userRepository)
+        {
+            try
+            {
+                var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
 
-		/// <summary>
-		/// Deactivate an account.
-		/// If the account has one or more pending tasks, it can't be deactivated.
-		/// </summary>
-		[Authorize]
-		[HttpPatch]
-		[Route("Deactivate")]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> Deactivate(
-			[FromServices] IHttpContextAccessor httpContextAccessor,
-			[FromServices] IUserRepository userRepository)
-		{			
-			try
-			{
-				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+                await _repo.AlterStatusAsync(authenticatedUser.Id, false);
+                await _repo.SaveChangesAsync();
 
-				await _repo.AlterStatusAsync(authenticatedUser.Id, false);
-				await _repo.SaveChangesAsync();
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.DeactivatedAccount
+                };
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.DeactivatedAccount
-				};
+                _historyRepo.AddHistoryAsync(historyData);
 
-				_historyRepo.AddHistoryAsync(historyData);
-				
-				return NoContent();
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
-		}
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
 
-		/// <summary>
-		/// Edit users account.
-		/// </summary>		
-		[Authorize]
-		[HttpPatch]
-		[Route("Edit")]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> Edit(
-			[FromBody] EditData data,
-			[FromServices] IHttpContextAccessor httpContextAccessor,
-			[FromServices] IUserRepository userRepository)
-		{
-			try
-			{
-				var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
-				await _repo.EditAsync(authenticatedUser, data);
-				await _repo.SaveChangesAsync();
+        /// <summary>
+        /// Edit users account.
+        /// </summary>
+        [Authorize]
+        [HttpPatch]
+        [Route("Edit")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Edit(
+            [FromBody] EditData data,
+            [FromServices] IHttpContextAccessor httpContextAccessor,
+            [FromServices] IUserRepository userRepository)
+        {
+            try
+            {
+                var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+                await _repo.EditAsync(authenticatedUser, data);
+                await _repo.SaveChangesAsync();
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.EditedAccount,
-					Content = data
-				};
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.EditedAccount,
+                    Content = data
+                };
 
-				_historyRepo.AddHistoryAsync(historyData);
+                _historyRepo.AddHistoryAsync(historyData);
 
-				return NoContent();
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
-		}
-	}
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
+    }
 }

@@ -12,6 +12,8 @@ using Repository._Commom;
 using Repository.Interfaces;
 using Repository.Interfaces_Commom;
 using System.Linq;
+using ToDoList.API.Services.TokenGenerator;
+using ToDoList.API.Services.TokenGenerator.Interfaces;
 using ToDoList.UI.Configurations.ServicesConfigurations;
 
 namespace ToDoList.UI
@@ -40,7 +42,7 @@ namespace ToDoList.UI
                 });
             });
 
-            services.AddDbContext<DataAccess.ApplicationContext>(
+            services.AddDbContext<ApplicationContext>(
                 options => options.UseSqlServer(connectionString)
             );
 
@@ -60,6 +62,7 @@ namespace ToDoList.UI
             services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
             services.AddScoped<IPaginationRepository, PaginationRepository>();
             services.AddScoped<IHistoryRepository>(x => new HistoryRepository(x.GetRequiredService<ApplicationContext>(), connectionString));
+            services.AddScoped<ITokenGenerator, TokenGenerator>();
 
             services.AddJwtAuthentication(configuration.GetSection("Authentication"));
             services.AddSwagger(configuration);
