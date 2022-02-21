@@ -2,14 +2,13 @@ using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using Repository.DTOs.Accounts;
 using System;
-using ToDoList.API.Services.TokenGenerator;
 using ToDoList.API.Services.TokenGenerator.Interfaces;
 using ToDoList.API.Services.TokenGenerator.Models;
 using ToDoList.UI.Configurations;
 
 namespace TodoList.Test.Services
 {
-    public class Tests
+    public class TokenGenerator
     {
         private ITokenGenerator tokenGenerator;
 
@@ -19,7 +18,7 @@ namespace TodoList.Test.Services
             Authentication authentication = new Authentication() { Secret = Guid.NewGuid().ToString() };
             IOptions<Authentication> authOptions = Options.Create(authentication);
 
-            tokenGenerator = new TokenGenerator(authOptions);
+            tokenGenerator = new ToDoList.API.Services.TokenGenerator.TokenGenerator(authOptions);
         }
 
         [Test]
