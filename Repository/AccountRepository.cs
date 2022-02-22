@@ -18,8 +18,8 @@ namespace Repository
         public async Task<AuthenticationResult> AuthenticateAsync(AuthenticationData data)
         {
             if (data == null) throw new MissingArgumentsException(nameof(data));
-            if (string.IsNullOrEmpty(data.Login)) throw new MissingArgumentsException(nameof(data.Login));
-            if (string.IsNullOrEmpty(data.Password)) throw new MissingArgumentsException(nameof(data.Password));
+            if (string.IsNullOrEmpty(data.Login?.Trim())) throw new MissingArgumentsException(nameof(data.Login));
+            if (string.IsNullOrEmpty(data.Password?.Trim())) throw new MissingArgumentsException(nameof(data.Password));
 
             var user = await _db.User.AsNoTracking().SingleOrDefaultAsync(x => x.Login == data.Login && x.Password == data.Password);
             if (user == null) throw new NotFoundException(typeof(User), "Invalid credentials");

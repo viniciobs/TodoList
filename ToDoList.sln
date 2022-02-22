@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Repository.Tests", "Reposit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domains.Tests", "Domain.Tests\Domains.Tests.csproj", "{E2AC914E-8422-4CEB-BB4E-54C6DCCC468F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoList.Test", "TodoList.Test\TodoList.Test.csproj", "{B1506018-EA36-4E59-9665-7D1DB52E949C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoList.API.Test", "TodoList.Test\TodoList.API.Test.csproj", "{B1506018-EA36-4E59-9665-7D1DB52E949C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

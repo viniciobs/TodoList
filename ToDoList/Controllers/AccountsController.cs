@@ -17,6 +17,7 @@ namespace ToDoList.UI.Controllers
     /// Responsible class for account management
     /// </summary>
     [Produces("application/json")]
+    [Consumes("application/json")]
     [Route("accounts")]
     [ApiController]
     [ApiExplorerSettings(GroupName = "accounts")]
@@ -44,7 +45,7 @@ namespace ToDoList.UI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<AuthenticationResult>> Authenticate(AuthenticationData data, [FromServices] ITokenGenerator tokenGenerator)
+        public async Task<ActionResult<AuthenticationResult>> Authenticate([FromBody] AuthenticationData data, [FromServices] ITokenGenerator tokenGenerator)
         {
             try
             {
