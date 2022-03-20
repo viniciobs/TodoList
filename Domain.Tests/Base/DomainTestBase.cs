@@ -20,7 +20,6 @@ namespace Domains.Tests
         protected string EmptyComment => string.Empty;
         protected string ValidComment => "Change \"BLS\"s name";
 
-        protected string NullName => null;
         protected string EmptyName => string.Empty;
         protected string ValidName => "Ozzy Osbourne";
 
@@ -37,13 +36,10 @@ namespace Domains.Tests
         protected string ValidTaskDescription => "To learn how to build nice APIs";
 
         protected User NullUser => null;
-        protected Task NullTask => null;
 
         protected User GenerateRandomUser() => User.New(GenerateRandomString(), GenerateRandomString());
 
         protected User GenerateAdminUser() => User.NewAdmin();
-
-        protected Task GenerateRandomTask() => GenerateRandomUser().AssignTask(GenerateRandomUser(), ValidTaskDescription);
 
         protected string GenerateRandomString() => Guid.NewGuid().ToString("N").ToLower().Substring(0, 10);
     }
