@@ -3,175 +3,96 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Domains.Tests
 {
-	[TestClass]
-	public class UsersTest : DomainTestBase
-	{
-		[TestMethod]
-		public void TestUserCreationThrowMissingArgumentsException()
-		{
-			// Act and assert
-			Assert.ThrowsException<MissingArgumentsException>(() => User.New(NullName, NullLogin));
-			Assert.ThrowsException<MissingArgumentsException>(() => User.New(NullName, EmptyLogin));
-			Assert.ThrowsException<MissingArgumentsException>(() => User.New(NullName, ValidLogin));
+    [TestClass]
+    public class UsersTest : DomainTestBase
+    {
+        private readonly User normalUser;
+        private readonly User adminUser;
 
-			Assert.ThrowsException<MissingArgumentsException>(() => User.New(EmptyName, NullLogin));
-			Assert.ThrowsException<MissingArgumentsException>(() => User.New(EmptyName, EmptyLogin));
-			Assert.ThrowsException<MissingArgumentsException>(() => User.New(EmptyName, ValidLogin));
+        public UsersTest()
+        {
+            normalUser = GenerateRandomUser();
+            adminUser = GenerateAdminUser();
+        }
 
-			Assert.ThrowsException<MissingArgumentsException>(() => User.New(ValidName, NullLogin));
-			Assert.ThrowsException<MissingArgumentsException>(() => User.New(ValidName, EmptyLogin));
-		}
+        [TestMethod]
+        [DataRow("  ", null)]
+        [DataRow("some name", "")]
+        public void CreateUserWithInvalidArguments_ThrowMissingArgumentsException(string name, string login)
+        {
+            Assert.ThrowsException<MissingArgumentsException>(() => User.New(name, login));
+        }
 
-		[TestMethod]
-		public void TestUserCreationOk()
-		{
-			// Act
-			var user = User.New(ValidName, ValidLogin);
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("   ")]
+        public void SetInvalidPassword_ThrowMissingArgumentsException(string password)
+        {
+            Assert.ThrowsException<MissingArgumentsException>(() => normalUser.SetPassword(password));
+        }
 
-			// Assert
-			Assert.IsInstanceOfType(user, typeof(User));
-		}
+        [TestMethod]
+        public void DeactivateWithOpenedTask_ThrowRuleException()
+        {
+            normalUser.SelfAssignTask("Test");
 
-		[TestMethod]
-		public void TestUserSetPasswordThrowMissingArgumentsException()
-		{
-			// Act and assert
-			Assert.ThrowsException<MissingArgumentsException>(() => GenerateRandomUser().SetPassword(NullPassword));
-			Assert.ThrowsException<MissingArgumentsException>(() => GenerateRandomUser().SetPassword(EmptyPassword));
-		}
+            Assert.ThrowsException<RuleException>(() => normalUser.Deactivate());
+        }
 
-		[TestMethod]
-		public void TestUserSetPasswordOk()
-		{
-			// Act
-			var randomUser = GenerateRandomUser();
-			randomUser.SetPassword(ValidPassword);
+        [TestMethod]
+        public void DeactivateWithAllTasksFinished_Ok()
+        {
+            var randomUser = GenerateRandomUser();
 
-			// Assert
-			Assert.AreEqual(ValidPassword, randomUser.Password);
-		}
+            var task = randomUser.SelfAssignTask("Test");
 
-		[TestMethod]
-		public void TestUserDeactivateAccountThrowRuleException()
-		{
-			// Act
-			var user = GenerateRandomUser();
-			user.AssignTask(user, GenerateRandomString());
+            randomUser.FinishTask(task);
+            randomUser.Deactivate();
 
-			// Assert
-			Assert.ThrowsException<RuleException>(() => user.Deactivate());
-		}
+            Assert.IsFalse(randomUser.IsActive);
+        }
 
-		[TestMethod]
-		public void TestUserDeactivateAccountOk()
-		{
-			// Act
-			var user = GenerateRandomUser();
-			var task = user.AssignTask(user, GenerateRandomString());
-			user.FinishTask(task);
-			user.Deactivate();
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("   ")]
+        public void SetInvalidName_ThrowMissingArgumentException(string newName)
+        {
+            Assert.ThrowsException<MissingArgumentsException>(() => normalUser.SetName(newName));
+        }
 
-			// Assert
-			Assert.IsFalse(user.IsActive);
-		}
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("   ")]
+        public void SetInvalidLogin_ThrowMissingArgumentException(string newLogin)
+        {
+            Assert.ThrowsException<MissingArgumentsException>(() => normalUser.SetLogin(newLogin));
+        }
 
-		[TestMethod]
-		public void TestUserSetNameThrowMissingArgumentException()
-		{
-			// Act
-			var user = GenerateRandomUser();
+        [TestMethod]
+        public void NormalUserSetSelfRole_ThrowPermissionException()
+        {
+            Assert.ThrowsException<PermissionException>(() => normalUser.AlterUserRole(normalUser, UserRole.Admin));
+        }
 
-			// Assert
-			Assert.ThrowsException<MissingArgumentsException>(() => user.SetName(EmptyName));
-			Assert.ThrowsException<MissingArgumentsException>(() => user.SetName(NullName));
-		}
+        [TestMethod]
+        public void SetRoleToNullUser_ThrowMissingArgumentsException()
+        {
+            Assert.ThrowsException<MissingArgumentsException>(() => GenerateAdminUser().AlterUserRole(NullUser, UserRole.Admin));
+        }
 
-		[TestMethod]
-		public void TestUserSetNameOk()
-		{
-			// Act
-			var user = GenerateRandomUser();
-			var oldName = user.Name;
-			var newName = GenerateRandomString();
+        [TestMethod]
+        public void AlterOwnRole_ThrowRuleException()
+        {
+            Assert.ThrowsException<RuleException>(() => adminUser.AlterUserRole(adminUser, UserRole.Normal));
+        }
 
-			// Assert
-			Assert.AreNotEqual(oldName, newName);
-		}
-
-		[TestMethod]
-		public void TestUserSetLoginThrowMissingArgumentException()
-		{
-			// Act
-			var user = GenerateRandomUser();
-
-			// Assert
-			Assert.ThrowsException<MissingArgumentsException>(() => user.SetLogin(EmptyLogin));
-			Assert.ThrowsException<MissingArgumentsException>(() => user.SetLogin(NullLogin));
-		}
-
-		[TestMethod]
-		public void TestUserSetLoginOk()
-		{
-			// Act
-			var user = GenerateRandomUser();
-			var oldLogin = user.Login;
-			var newLogin = GenerateRandomString();
-
-			// Assert
-			Assert.AreNotEqual(oldLogin, newLogin);
-		}
-
-		[TestMethod]
-		public void TestUserSetRoleThrowRuleException()
-		{
-			// Act
-			var randomUser = GenerateRandomUser();
-			var adminUser = GenerateAdminUser();
-
-			var adminUser2 = GenerateAdminUser();
-
-			// Assert
-			Assert.ThrowsException<RuleException>(() => adminUser.AlterUserRole(randomUser, UserRole.Normal));
-			Assert.ThrowsException<RuleException>(() => adminUser2.AlterUserRole(adminUser, UserRole.Admin));
-			Assert.ThrowsException<RuleException>(() => adminUser2.AlterUserRole(adminUser2, UserRole.Normal));
-		}
-
-		[TestMethod]
-		public void TestUserSetRoleThrowPermissionException()
-		{
-			// Act
-			var randomUser = GenerateRandomUser();
-			var adminUser = GenerateAdminUser();
-
-			// Assert
-			Assert.ThrowsException<PermissionException>(() => randomUser.AlterUserRole(GenerateRandomUser(), UserRole.Admin));
-			Assert.ThrowsException<PermissionException>(() => randomUser.AlterUserRole(randomUser, UserRole.Admin));
-		}
-
-		[TestMethod]
-		public void TestUserSetRoleThrowMissingArgumentsException()
-		{
-			// Act and assert
-			Assert.ThrowsException<MissingArgumentsException>(() => GenerateAdminUser().AlterUserRole(NullUser, UserRole.Admin));
-		}
-
-		[TestMethod]
-		public void TestUserSetRoleOk()
-		{
-			// Act
-			var adminUser = GenerateAdminUser();
-			var randomUser = GenerateRandomUser();
-
-			adminUser.AlterUserRole(randomUser, UserRole.Admin);
-
-			// Assert
-			Assert.AreEqual(randomUser.Role, UserRole.Admin);
-
-			// Act 2
-			adminUser.AlterUserRole(randomUser, UserRole.Normal);
-
-			// Assert 2
-			Assert.AreEqual(randomUser.Role, UserRole.Normal);
-		}		
-	}
+        [TestMethod]
+        public void TryChangeOtherUserRoleWithTheAlreadyGivenRole_ThrowRuleException()
+        {
+            Assert.ThrowsException<RuleException>(() => adminUser.AlterUserRole(normalUser, UserRole.Normal));
+        }
+    }
 }
