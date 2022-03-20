@@ -3,39 +3,48 @@ using Task = Domains.User.Task;
 
 namespace Domains.Tests
 {
-	public abstract class DomainTestBase
-	{
-		// Arrange
+    public abstract class DomainTestBase
+    {
+        protected readonly User normalUser;
+        protected readonly User adminUser;
 
-		protected string NullComment => null;
-		protected string EmptyComment => string.Empty;
-		protected string ValidComment => "Change \"BLS\"s name";
+        public DomainTestBase()
+        {
+            normalUser = GenerateRandomUser();
+            adminUser = GenerateAdminUser();
+        }
 
-		protected string NullName => null;
-		protected string EmptyName => string.Empty;
-		protected string ValidName => "Ozzy Osbourne";
+        // Arrange
 
-		protected string NullLogin => null;
-		protected string EmptyLogin => string.Empty;
-		protected string ValidLogin => "prince.of.darkness";
+        protected string NullComment => null;
+        protected string EmptyComment => string.Empty;
+        protected string ValidComment => "Change \"BLS\"s name";
 
-		protected string NullPassword => null;
-		protected string EmptyPassword => string.Empty;
-		protected string ValidPassword => "0224Osb0urn*";
+        protected string NullName => null;
+        protected string EmptyName => string.Empty;
+        protected string ValidName => "Ozzy Osbourne";
 
-		protected string NullTaskDescription => null;
-		protected string EmptyTaskDescription => string.Empty;
-		protected string ValidTaskDescription => "To learn how to build nice APIs";
+        protected string NullLogin => null;
+        protected string EmptyLogin => string.Empty;
+        protected string ValidLogin => "prince.of.darkness";
 
-		protected User NullUser => null;
-		protected Task NullTask => null;
+        protected string NullPassword => null;
+        protected string EmptyPassword => string.Empty;
+        protected string ValidPassword => "0224Osb0urn*";
 
-		protected User GenerateRandomUser() => User.New(GenerateRandomString(), GenerateRandomString());
+        protected string NullTaskDescription => null;
+        protected string EmptyTaskDescription => string.Empty;
+        protected string ValidTaskDescription => "To learn how to build nice APIs";
 
-		protected User GenerateAdminUser() => User.NewAdmin();
+        protected User NullUser => null;
+        protected Task NullTask => null;
 
-		protected Task GenerateRandomTask() => GenerateRandomUser().AssignTask(GenerateRandomUser(), ValidTaskDescription);
+        protected User GenerateRandomUser() => User.New(GenerateRandomString(), GenerateRandomString());
 
-		protected string GenerateRandomString() => Guid.NewGuid().ToString("N").ToLower().Substring(0, 10);
-	}
+        protected User GenerateAdminUser() => User.NewAdmin();
+
+        protected Task GenerateRandomTask() => GenerateRandomUser().AssignTask(GenerateRandomUser(), ValidTaskDescription);
+
+        protected string GenerateRandomString() => Guid.NewGuid().ToString("N").ToLower().Substring(0, 10);
+    }
 }

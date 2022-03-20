@@ -6,15 +6,6 @@ namespace Domains.Tests
     [TestClass]
     public class UsersTest : DomainTestBase
     {
-        private readonly User normalUser;
-        private readonly User adminUser;
-
-        public UsersTest()
-        {
-            normalUser = GenerateRandomUser();
-            adminUser = GenerateAdminUser();
-        }
-
         [TestMethod]
         [DataRow("  ", null)]
         [DataRow("some name", "")]
