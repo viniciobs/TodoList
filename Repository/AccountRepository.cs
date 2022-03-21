@@ -36,7 +36,7 @@ namespace Repository
 
         public void ChangePassword(User user, ChangePasswordData data)
         {
-            if (user == null) throw new UnauthorizeException();
+            if (user == null) throw new MissingArgumentsException(nameof(user));
             if (data == null) throw new MissingArgumentsException(nameof(data));
             if (string.IsNullOrEmpty(data.OldPassword?.Trim())) throw new MissingArgumentsException(data.OldPassword);
             if (string.IsNullOrEmpty(data.NewPassword?.Trim())) throw new MissingArgumentsException(data.NewPassword);
@@ -49,8 +49,6 @@ namespace Repository
         public async Task<Guid> CreateAsync(CreateAccountData data)
         {
             if (data == null) throw new MissingArgumentsException(nameof(data));
-            if (string.IsNullOrEmpty(data.Name)) throw new MissingArgumentsException(nameof(data.Name));
-            if (string.IsNullOrEmpty(data.Password)) throw new MissingArgumentsException(nameof(data.Password));
 
             await ValidateLogin(data.Login);
 
@@ -99,7 +97,7 @@ namespace Repository
         public async Task EditAsync(User user, EditData data)
         {
             if (data == null) throw new MissingArgumentsException(nameof(data));
-            if (user == null) throw new UnauthorizeException();
+            if (user == null) throw new MissingArgumentsException(nameof(user));
 
             bool hasAnyChange = !string.IsNullOrEmpty(data.Name?.Trim()) || !string.IsNullOrEmpty(data.Login?.Trim());
             hasAnyChange &= user.Login != data.Login || user.Name != data.Name;
