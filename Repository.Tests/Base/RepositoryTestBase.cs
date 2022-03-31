@@ -15,6 +15,7 @@ namespace Repository.Tests.Base
         protected readonly IAccountRepository accountRepository;
         protected readonly IPaginationRepository paginationRepository;
         protected IUserRepository userRepository;
+        protected ITaskRepository taskRepository;
 
         public RepositoryTestBase()
         {
@@ -23,6 +24,7 @@ namespace Repository.Tests.Base
             accountRepository = new AccountRepository(context);
             paginationRepository = new PaginationRepository(context);
             userRepository = new UserRepository(context, paginationRepository);
+            taskRepository = new TaskRepository(context, paginationRepository);
         }
 
         protected CreateAccountData GenerateValidCreateAccountData()
@@ -45,6 +47,11 @@ namespace Repository.Tests.Base
             randomUser.Deactivate();
 
             return randomUser;
+        }
+
+        protected void EnsureUserIsActive(User user)
+        {
+            user.Activate();
         }
     }
 }
