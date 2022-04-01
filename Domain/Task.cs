@@ -32,6 +32,7 @@ namespace Domains
                 if (target == null) throw new MissingArgumentsException(nameof(target));
                 if (string.IsNullOrEmpty(description?.Trim())) throw new MissingArgumentsException(nameof(description));
 
+                Id = Guid.NewGuid();
                 CreatorUser = creator;
                 CreatorUserId = creator.Id;
                 TargetUser = target;
