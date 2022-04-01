@@ -130,35 +130,6 @@ namespace Repository.Tests
         }
 
         [TestMethod]
-        public async Task FindTaskByIdAndCreatorAndTargetUser_Ok()
-        {
-            EnsureUserIsActive(adminUser);
-            EnsureUserIsActive(normalUser);
-
-            var creatorUser = adminUser;
-            var targetUser = normalUser;
-            var taskDescription = "Test";
-
-            var data = new AssignTaskData()
-            {
-                CreatorUser = creatorUser,
-                TargetUser = targetUser,
-                Description = taskDescription
-            };
-
-            var taskResult = await taskRepository.AssignAsync(data);
-            await taskRepository.SaveChangesAsync();
-
-            var task = context.Task.Single(x => x.Id == taskResult.Id);
-
-            var taskFoundByCreatorUser = await taskRepository.FindAsync(creatorUser.Id, taskResult.Id);
-            Assert.AreEqual(taskFoundByCreatorUser.Id, task.Id);
-
-            var taskFoundByTargetUser = await taskRepository.FindAsync(targetUser.Id, taskResult.Id);
-            Assert.AreEqual(taskFoundByTargetUser.Id, task.Id);
-        }
-
-        [TestMethod]
         public async Task TryFinishTaskWithNullUser_ThrowMissingArgumentException()
         {
             EnsureUserIsActive(adminUser);
