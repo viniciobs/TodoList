@@ -71,7 +71,7 @@ namespace Domains.Tests
         [TestMethod]
         public void SetRoleToNullUser_ThrowMissingArgumentsException()
         {
-            Assert.ThrowsException<MissingArgumentsException>(() => GenerateAdminUser().AlterUserRole(NullUser, UserRole.Admin));
+            Assert.ThrowsException<MissingArgumentsException>(() => GenerateAdminUser().AlterUserRole(null, UserRole.Admin));
         }
 
         [TestMethod]

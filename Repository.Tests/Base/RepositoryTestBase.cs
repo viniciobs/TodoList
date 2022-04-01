@@ -14,8 +14,9 @@ namespace Repository.Tests.Base
         protected readonly ApplicationContext context;
         protected readonly IAccountRepository accountRepository;
         protected readonly IPaginationRepository paginationRepository;
-        protected IUserRepository userRepository;
-        protected ITaskRepository taskRepository;
+        protected readonly IUserRepository userRepository;
+        protected readonly ITaskRepository taskRepository;
+        protected readonly ITaskCommentRepository commentRepository;
 
         public RepositoryTestBase()
         {
@@ -25,6 +26,7 @@ namespace Repository.Tests.Base
             paginationRepository = new PaginationRepository(context);
             userRepository = new UserRepository(context, paginationRepository);
             taskRepository = new TaskRepository(context, paginationRepository);
+            commentRepository = new TaskCommentRepository(context, paginationRepository);
         }
 
         protected CreateAccountData GenerateValidCreateAccountData()

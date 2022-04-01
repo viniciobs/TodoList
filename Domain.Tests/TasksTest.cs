@@ -24,7 +24,7 @@ namespace Domains.Tests
         [TestMethod]
         public void TryFinishFinishedTask_ThrowRuleException()
         {
-            var task = normalUser.SelfAssignTask(ValidTaskDescription);
+            var task = normalUser.SelfAssignTask("Test");
             normalUser.FinishTask(task);
 
             Assert.ThrowsException<RuleException>(() => normalUser.FinishTask(task));
