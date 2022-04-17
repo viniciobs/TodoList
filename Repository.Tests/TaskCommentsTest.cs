@@ -63,6 +63,9 @@ namespace Repository.Tests
         [TestMethod]
         public async Task AddComment_Ok()
         {
+            EnsureUserIsActive(adminUser);
+            EnsureUserIsActive(normalUser);
+
             var assingTaskData = new AssignTaskData()
             {
                 CreatorUser = adminUser,
