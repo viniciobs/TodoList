@@ -15,7 +15,7 @@ namespace DataAccess.Migrations
                     FirstName = table.Column<string>(type: "varchar(30)", unicode: false, maxLength: 30, nullable: false),
                     LastName = table.Column<string>(type: "varchar(30)", unicode: false, maxLength: 30, nullable: false),
                     Email = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    Password = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", unicode: false, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false)
                 },
                 constraints: table =>

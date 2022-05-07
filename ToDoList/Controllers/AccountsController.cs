@@ -32,6 +32,25 @@ namespace ToDoList.UI.Controllers
             _historyRepo = historyRepo;
         }
 
+        private async Task<AuthenticationResult> Authenticate(AuthenticationData data, ITokenGenerator tokenGenerator)
+        {
+            AuthenticationResult authenticationResult = await _repo.AuthenticateAsync(data);
+
+            authenticationResult.Token = tokenGenerator.GenerateToken(ClaimsData.Convert(authenticationResult));
+
+            await _repo.SaveChangesAsync();
+
+            var historyData = new AddHistoryData()
+            {
+                UserId = authenticationResult.UserId,
+                Action = HistoryAction.Authenticated
+            };
+
+            _historyRepo.AddHistoryAsync(historyData);
+
+            return authenticationResult;
+        }
+
         /// <summary>
         /// Identify, authenticate and generate a token to a user.
         /// The token will be available for the next 30 minutes.
@@ -45,23 +64,11 @@ namespace ToDoList.UI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<AuthenticationResult>> Authenticate([FromBody] AuthenticationData data, [FromServices] ITokenGenerator tokenGenerator)
+        public async Task<ActionResult<AuthenticationResult>> Login([FromBody] AuthenticationData data, [FromServices] ITokenGenerator tokenGenerator)
         {
             try
             {
-                AuthenticationResult authenticationResult = await _repo.AuthenticateAsync(data);
-
-                authenticationResult.Token = tokenGenerator.GenerateToken(ClaimsData.Convert(authenticationResult));
-
-                await _repo.SaveChangesAsync();
-
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticationResult.UserId,
-                    Action = HistoryAction.Authenticated
-                };
-
-                _historyRepo.AddHistoryAsync(historyData);
+                var authenticationResult = await Authenticate(data, tokenGenerator);
 
                 return Ok(authenticationResult);
             }
@@ -90,22 +97,22 @@ namespace ToDoList.UI.Controllers
             {
                 await _repo.CreateAsync(data);
                 await _repo.SaveChangesAsync();
+
+                var authenticationData = new AuthenticationData()
+                {
+                    Login = data.Login,
+                    Password = data.Password
+                };
+
+                var authenticationResult = await Authenticate(authenticationData, tokenGenerator);
+
+                return StatusCode(StatusCodes.Status201Created, authenticationResult);
             }
             catch (Exception exception)
             {
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
             }
-
-            var authenticationData = new AuthenticationData()
-            {
-                Login = data.Login,
-                Password = data.Password
-            };
-
-            var result = await Authenticate(authenticationData, tokenGenerator);
-
-            return StatusCode(StatusCodes.Status201Created, result);
         }
 
         /// <summary>

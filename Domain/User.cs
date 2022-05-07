@@ -1,4 +1,5 @@
 ﻿using Domains.Exceptions;
+using Isopoh.Cryptography.Argon2;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -92,7 +93,7 @@ namespace Domains
         {
             if (string.IsNullOrEmpty(password?.Trim())) throw new MissingArgumentsException(nameof(password));
 
-            Password = password;
+            Password = PasswordManager.Hash(password);
         }
 
         public void Activate()

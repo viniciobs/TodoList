@@ -21,8 +21,11 @@ namespace Repository
             if (string.IsNullOrEmpty(data.Login?.Trim())) throw new MissingArgumentsException(nameof(data.Login));
             if (string.IsNullOrEmpty(data.Password?.Trim())) throw new MissingArgumentsException(nameof(data.Password));
 
-            var user = await _db.User.AsNoTracking().SingleOrDefaultAsync(x => x.Login == data.Login && x.Password == data.Password);
-            if (user == null) throw new NotFoundException(typeof(User), "Invalid credentials");
+            var user = await _db.User.AsNoTracking().SingleOrDefaultAsync(x => x.Login == data.Login);
+            if (user == null) throw new NotFoundException(typeof(User), "User not found");
+
+            var isPasswordValid = PasswordManager.AreEqual(user.Password, data.Password);
+            if (!isPasswordValid) throw new UnprocessableEntityException("Invalid credentials");
 
             return new AuthenticationResult()
             {
@@ -40,7 +43,9 @@ namespace Repository
             if (data == null) throw new MissingArgumentsException(nameof(data));
             if (string.IsNullOrEmpty(data.OldPassword?.Trim())) throw new MissingArgumentsException(data.OldPassword);
             if (string.IsNullOrEmpty(data.NewPassword?.Trim())) throw new MissingArgumentsException(data.NewPassword);
-            if (user.Password != data.OldPassword?.Trim()) throw new RuleException("Old password is wrong");
+
+            var isPasswordValid = PasswordManager.AreEqual(user.Password, data.OldPassword);
+            if (!isPasswordValid) throw new RuleException("Old password is wrong");
 
             user.SetPassword(data.NewPassword);
             _db.Update(user);

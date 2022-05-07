@@ -64,9 +64,8 @@ namespace DataAccess.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(20)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("varchar(max)");
 
                     b.Property<int>("Role")
                         .ValueGeneratedOnAdd()
