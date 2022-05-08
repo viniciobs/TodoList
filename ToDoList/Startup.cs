@@ -7,13 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Converters;
-using Repository;
-using Repository._Commom;
-using Repository.Interfaces;
-using Repository.Interfaces_Commom;
 using System.Linq;
-using ToDoList.API.Services.TokenGenerator;
-using ToDoList.API.Services.TokenGenerator.Interfaces;
+using ToDoList.API.Configurations.ServicesConfigurations;
 using ToDoList.UI.Configurations.ServicesConfigurations;
 
 namespace ToDoList.UI
@@ -56,16 +51,10 @@ namespace ToDoList.UI
             services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters.Add(new StringEnumConverter()));
             services.AddHttpContextAccessor();
 
-            services.AddScoped<IAccountRepository, AccountRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<ITaskRepository, TaskRepository>();
-            services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
-            services.AddScoped<IPaginationRepository, PaginationRepository>();
-            services.AddScoped<IHistoryRepository>(x => new HistoryRepository(x.GetRequiredService<ApplicationContext>(), connectionString));
-            services.AddScoped<ITokenGenerator, TokenGenerator>();
+            services.ConfigureServices(connectionString);
 
             services.AddJwtAuthentication(configuration.GetSection("Authentication"));
-            services.AddSwagger(configuration);
+            services.AddSwagger();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -75,14 +64,7 @@ namespace ToDoList.UI
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint($"/swagger/{Swagger.ACCOUNTS}/swagger.json", "Accounts");
-                options.SwaggerEndpoint($"/swagger/{Swagger.USERS}/swagger.json", "Users");
-                options.SwaggerEndpoint($"/swagger/{Swagger.TASKS}/swagger.json", "Tasks");
-                options.SwaggerEndpoint($"/swagger/{Swagger.TASK_COMMENTS}/swagger.json", "Task comments");
-            });
+            app.ConfigureSwaggerEndpoints();
 
             app.UseHttpsRedirection();
             app.UseRouting();
