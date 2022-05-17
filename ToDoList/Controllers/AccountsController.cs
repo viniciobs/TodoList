@@ -1,12 +1,15 @@
 ﻿using Domains;
+using Domains.Logger;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Repository.DTOs.Accounts;
 using Repository.DTOs.History;
 using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
+using ToDoList.API.Controllers.Base;
 using ToDoList.API.Services.TokenGenerator.Interfaces;
 using ToDoList.API.Services.TokenGenerator.Models;
 using ToDoList.UI.Controllers.Commom;
@@ -19,15 +22,16 @@ namespace ToDoList.UI.Controllers
     [Produces("application/json")]
     [Consumes("application/json")]
     [Route("accounts")]
-    [ApiController]
     [ApiExplorerSettings(GroupName = "accounts")]
-    public class AccountsController : ControllerBase
+    public class AccountsController : BaseController
     {
+        private readonly ILogger _logger;
         private readonly IAccountRepository _repo;
         private readonly IHistoryRepository _historyRepo;
 
-        public AccountsController(IAccountRepository repo, IHistoryRepository historyRepo)
+        public AccountsController(IAccountRepository repo, IHistoryRepository historyRepo, ILogger<AccountsController> logger)
         {
+            _logger = logger;
             _repo = repo;
             _historyRepo = historyRepo;
         }
@@ -66,14 +70,20 @@ namespace ToDoList.UI.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<AuthenticationResult>> Login([FromBody] AuthenticationData data, [FromServices] ITokenGenerator tokenGenerator)
         {
+            LogRequest(_logger);
+
             try
             {
                 var authenticationResult = await Authenticate(data, tokenGenerator);
+
+                _logger.LogInformation(new LogContent(authenticationResult.UserId, ipAddress, "Successfully authenticated").Serialized());
 
                 return Ok(authenticationResult);
             }
             catch (Exception exception)
             {
+                _logger.LogError(exception, new LogContent(ipAddress, $"Authentication failed for login '{data.Login}'.").Serialized());
+
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
             }
@@ -93,10 +103,14 @@ namespace ToDoList.UI.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult<AuthenticationResult>> New([FromBody] CreateAccountData data, [FromServices] ITokenGenerator tokenGenerator)
         {
+            LogRequest(_logger);
+
             try
             {
-                await _repo.CreateAsync(data);
+                var userId = await _repo.CreateAsync(data);
                 await _repo.SaveChangesAsync();
+
+                _logger.LogInformation(new LogContent(ipAddress, $"User '{userId}' successfully created.").Serialized());
 
                 var authenticationData = new AuthenticationData()
                 {
@@ -106,10 +120,14 @@ namespace ToDoList.UI.Controllers
 
                 var authenticationResult = await Authenticate(authenticationData, tokenGenerator);
 
+                _logger.LogInformation(new LogContent(authenticationResult.UserId, ipAddress, "Successfully authenticated.").Serialized());
+
                 return StatusCode(StatusCodes.Status201Created, authenticationResult);
             }
             catch (Exception exception)
             {
+                _logger.LogError(exception, new LogContent(ipAddress, "Account creation failed.").Serialized());
+
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
             }
@@ -135,12 +153,18 @@ namespace ToDoList.UI.Controllers
             [FromServices] IUserRepository userRepository
             )
         {
+            LogRequest(_logger);
+
+            User authenticatedUser = null;
+
             try
             {
-                var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+                authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
 
                 _repo.ChangePassword(authenticatedUser, data);
                 await _repo.SaveChangesAsync();
+
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Password successfully changed.").Serialized());
 
                 var historyData = new AddHistoryData()
                 {
@@ -154,6 +178,8 @@ namespace ToDoList.UI.Controllers
             }
             catch (Exception exception)
             {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, "Password change failed.").Serialized());
+
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
             }
@@ -179,12 +205,18 @@ namespace ToDoList.UI.Controllers
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] IUserRepository userRepository)
         {
+            LogRequest(_logger);
+
+            User authenticatedUser = null;
+
             try
             {
-                var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+                authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
 
                 await _repo.DeleteAsync(id);
                 await _repo.SaveChangesAsync();
+
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"User '{id}' successfully deleted.").Serialized());
 
                 var historyData = new AddHistoryData()
                 {
@@ -197,6 +229,8 @@ namespace ToDoList.UI.Controllers
             }
             catch (Exception exception)
             {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Delete account failed for user '{id}'.").Serialized());
+
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
             }
@@ -247,12 +281,17 @@ namespace ToDoList.UI.Controllers
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] IUserRepository userRepository)
         {
+            LogRequest(_logger);
+
+            User authenticatedUser = null;
             try
             {
-                var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+                authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
 
                 await _repo.AlterStatusAsync(authenticatedUser.Id, true);
                 await _repo.SaveChangesAsync();
+
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Account successfully activated.").Serialized());
 
                 var historyData = new AddHistoryData()
                 {
@@ -266,6 +305,8 @@ namespace ToDoList.UI.Controllers
             }
             catch (Exception exception)
             {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Account activation failed.").Serialized());
+
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
             }
@@ -287,12 +328,18 @@ namespace ToDoList.UI.Controllers
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] IUserRepository userRepository)
         {
+            LogRequest(_logger);
+
+            User authenticatedUser = null;
+
             try
             {
-                var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+                authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
 
                 await _repo.AlterStatusAsync(authenticatedUser.Id, false);
                 await _repo.SaveChangesAsync();
+
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Account successfully deactivated.").Serialized());
 
                 var historyData = new AddHistoryData()
                 {
@@ -306,6 +353,8 @@ namespace ToDoList.UI.Controllers
             }
             catch (Exception exception)
             {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Account deactivation failed.").Serialized());
+
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
             }
@@ -327,11 +376,18 @@ namespace ToDoList.UI.Controllers
             [FromServices] IHttpContextAccessor httpContextAccessor,
             [FromServices] IUserRepository userRepository)
         {
+            LogRequest(_logger);
+
+            User authenticatedUser = null;
+
             try
             {
-                var authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+                authenticatedUser = httpContextAccessor.EnsureAuthentication(userRepository);
+
                 await _repo.EditAsync(authenticatedUser, data);
                 await _repo.SaveChangesAsync();
+
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Account successfully edited.").Serialized());
 
                 var historyData = new AddHistoryData()
                 {
@@ -346,6 +402,8 @@ namespace ToDoList.UI.Controllers
             }
             catch (Exception exception)
             {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Account edition failed.").Serialized());
+
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
             }
