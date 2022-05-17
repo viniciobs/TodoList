@@ -1,7 +1,9 @@
 ﻿using Domains;
+using Domains.Logger;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.History;
 using Repository.DTOs.Users;
@@ -20,12 +22,14 @@ namespace ToDoList.UI.Controllers
     [ApiExplorerSettings(GroupName = "users")]
     public class UsersController : ApiControllerBase
     {
+        private readonly ILogger _logger;
         private readonly IHistoryRepository _historyRepository;
 
-        public UsersController(IHttpContextAccessor httpContextAccessor, IUserRepository repo, IHistoryRepository historyRepository)
+        public UsersController(IHttpContextAccessor httpContextAccessor, IUserRepository repo, IHistoryRepository historyRepository, ILogger<UsersController> logger)
             : base(httpContextAccessor, repo)
         {
             _historyRepository = historyRepository;
+            _logger = logger;
         }
 
         /// <summary>
@@ -45,6 +49,8 @@ namespace ToDoList.UI.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<PaginationResult<UserResult>>> Get(string name, string login, bool? active, int page, int itemsPerPage)
         {
+            LogRequest(_logger);
+
             try
             {
                 if (authenticatedUser.Role != UserRole.Admin) active = true;
@@ -60,6 +66,8 @@ namespace ToDoList.UI.Controllers
 
                 var users = await _userRepo.GetAsync(filter);
 
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Successfully listed users.").Serialized());
+
                 var historyData = new AddHistoryData()
                 {
                     UserId = authenticatedUser.Id,
@@ -73,6 +81,8 @@ namespace ToDoList.UI.Controllers
             }
             catch (Exception exception)
             {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, "Error listing users.").Serialized());
+
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
             }
@@ -93,6 +103,8 @@ namespace ToDoList.UI.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<UserResult>> Get(Guid id)
         {
+            LogRequest(_logger);
+
             try
             {
                 bool? filterOnlyActive = null;
@@ -103,6 +115,8 @@ namespace ToDoList.UI.Controllers
                 var user = await _userRepo.FindAsync(id, filterOnlyActive);
 
                 UserResult userResult = UserResult.Convert(user);
+
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Successfully listed user '{id}' details.").Serialized());
 
                 var historyData = new AddHistoryData()
                 {
@@ -117,6 +131,8 @@ namespace ToDoList.UI.Controllers
             }
             catch (Exception exception)
             {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Error listing user detail for user '{id}'.").Serialized());
+
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
             }
@@ -141,6 +157,8 @@ namespace ToDoList.UI.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AlterUserRole(Guid targetUserid, [FromBody] UserRole targetUserNewRole)
         {
+            LogRequest(_logger);
+
             try
             {
                 var data = new AlterUserRoleData()
@@ -152,6 +170,8 @@ namespace ToDoList.UI.Controllers
 
                 await _userRepo.AlterUserRoleAsync(data);
                 await _userRepo.SaveChangesAsync();
+
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Successfully altered user '{targetUserid}' role.").Serialized());
 
                 var historyData = new AddHistoryData()
                 {
@@ -166,6 +186,8 @@ namespace ToDoList.UI.Controllers
             }
             catch (Exception exception)
             {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Alter user '{targetUserid}' role failed.").Serialized());
+
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
             }
