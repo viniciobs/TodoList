@@ -76,13 +76,13 @@ namespace ToDoList.UI.Controllers
             {
                 var authenticationResult = await Authenticate(data, tokenGenerator);
 
-                _logger.LogInformation(new LogContent(authenticationResult.UserId, ipAddress, "Successfully authenticated").Serialized());
+                _logger.LogInformation(new LogContent(authenticationResult.UserId, ipAddress, "Successfully authenticated", data).Serialized());
 
                 return Ok(authenticationResult);
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, new LogContent(ipAddress, $"Authentication failed for login '{data.Login}'.").Serialized());
+                _logger.LogError(exception, new LogContent(ipAddress, "Authentication failed.", data).Serialized());
 
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
@@ -110,7 +110,7 @@ namespace ToDoList.UI.Controllers
                 var userId = await _repo.CreateAsync(data);
                 await _repo.SaveChangesAsync();
 
-                _logger.LogInformation(new LogContent(ipAddress, $"User '{userId}' successfully created.").Serialized());
+                _logger.LogInformation(new LogContent(ipAddress, "Account successfully created.", data).Serialized());
 
                 var authenticationData = new AuthenticationData()
                 {
@@ -126,7 +126,7 @@ namespace ToDoList.UI.Controllers
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, new LogContent(ipAddress, "Account creation failed.").Serialized());
+                _logger.LogError(exception, new LogContent(ipAddress, "Account creation failed.", data).Serialized());
 
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
@@ -387,7 +387,7 @@ namespace ToDoList.UI.Controllers
                 await _repo.EditAsync(authenticatedUser, data);
                 await _repo.SaveChangesAsync();
 
-                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Account successfully edited.").Serialized());
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Account successfully edited.", data).Serialized());
 
                 var historyData = new AddHistoryData()
                 {
@@ -402,7 +402,7 @@ namespace ToDoList.UI.Controllers
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Account edition failed.").Serialized());
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Account edition failed.", data).Serialized());
 
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
