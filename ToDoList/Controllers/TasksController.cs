@@ -1,8 +1,9 @@
 ﻿using Domains;
-using Domains.Exceptions;
+using Domains.Logger;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Repository.DTOs._Commom;
 using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.History;
@@ -15,308 +16,350 @@ using ToDoList.UI.Controllers.Commom;
 
 namespace ToDoList.UI.Controllers
 {
-	/// <summary>
-	/// Responsible class for tasks management.
-	/// </summary>
-	[ApiExplorerSettings(GroupName = "tasks")]
-	public class TasksController : ApiControllerBase
-	{
-		private const string BASE_ROUTE = "Users/{targetUserId:Guid}/Tasks";
-		private readonly ITaskRepository _repo;
-		private readonly IHistoryRepository _historyRepository;
+    /// <summary>
+    /// Responsible class for tasks management.
+    /// </summary>
+    [ApiExplorerSettings(GroupName = "tasks")]
+    public class TasksController : ApiControllerBase
+    {
+        private const string BASE_ROUTE = "Users/{targetUserId:Guid}/Tasks";
+        private readonly ITaskRepository _repo;
+        private readonly IHistoryRepository _historyRepository;
+        private readonly ILogger _logger;
 
-		public TasksController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskRepository repo, IHistoryRepository historyRepository)
-			: base(httpContextAccessor, userRepo)
-		{
-			_repo = repo;
-			_historyRepository = historyRepository;
-		}
+        public TasksController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskRepository repo, IHistoryRepository historyRepository, ILogger<TasksController> logger)
+            : base(httpContextAccessor, userRepo)
+        {
+            _repo = repo;
+            _logger = logger;
+            _historyRepository = historyRepository;
+        }
 
-		/// <summary>
-		/// Creates and sets a task to a given user.
-		/// Only admins can set tasks to users.
-		/// </summary>
-		/// <param name="targetUserId">User whom the task is going to be assigned.</param>
-		/// <param name="description">Task's description.</param>
-		/// <returns>Task details.</returns>
-		[Route(BASE_ROUTE)]
-		[HttpPost]		
-		[Authorize(Roles = "Admin")]		
-		[ProducesDefaultResponseType]		
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status409Conflict)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<TaskResult>> AssignTo([FromRoute] Guid targetUserId, [FromBody] string description)
-		{		
-			try
-			{
-				var targetUser = await _userRepo.FindAsync(targetUserId);				
+        /// <summary>
+        /// Creates and sets a task to a given user.
+        /// Only admins can set tasks to users.
+        /// </summary>
+        /// <param name="targetUserId">User whom the task is going to be assigned.</param>
+        /// <param name="description">Task's description.</param>
+        /// <returns>Task details.</returns>
+        [Route(BASE_ROUTE)]
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TaskResult>> AssignTo([FromRoute] Guid targetUserId, [FromBody] string description)
+        {
+            LogRequest(_logger);
 
-				var assignData = new AssignTaskData()
-				{
-					CreatorUser = authenticatedUser,
-					TargetUser = targetUser,
-					Description = description
-				};
+            AssignTaskData assignData = null;
 
-				var result = await _repo.AssignAsync(assignData);
-				await _repo.SaveChangesAsync();
+            try
+            {
+                var targetUser = await _userRepo.FindAsync(targetUserId);
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.AssignedTask,
-					Content = new { TargetUserId = targetUserId, Description = description}
-				};
+                assignData = new AssignTaskData()
+                {
+                    CreatorUser = authenticatedUser,
+                    TargetUser = targetUser,
+                    Description = description
+                };
 
-				_historyRepository.AddHistoryAsync(historyData);
+                var result = await _repo.AssignAsync(assignData);
+                await _repo.SaveChangesAsync();
 
-				return StatusCode(StatusCodes.Status201Created, result);
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
-		}		
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Successfully assigned task to '{targetUserId}'.", assignData).Serialized());
 
-		/// <summary>
-		/// Retrives details about a task.
-		/// </summary>
-		/// <param name="targetUserId">User tied to the task</param>
-		/// <param name="id">Task identifier</param>
-		/// <returns></returns>		
-		[Route(BASE_ROUTE + "/{id:Guid}")]
-		[HttpGet]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<TaskResult>> Find([FromRoute] Guid targetUserId, [FromRoute] Guid id)
-		{
-			if (authenticatedUser.Id != targetUserId && authenticatedUser.Role != Domains.UserRole.Admin) return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to see this task details");
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.AssignedTask,
+                    Content = new { TargetUserId = targetUserId, Description = description }
+                };
 
-			try
-			{
-				var result = await _repo.FindAsync(targetUserId, id);
+                _historyRepository.AddHistoryAsync(historyData);
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.ListedTasks,
-					Content = new { TargetUserId = targetUserId, TaskId = id }
-				};
+                return StatusCode(StatusCodes.Status201Created, result);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Error assigning task to '{targetUserId}'.", assignData).Serialized());
 
-				_historyRepository.AddHistoryAsync(historyData);
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
 
-				return Ok(result);
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
-		}
+        /// <summary>
+        /// Retrives details about a task.
+        /// </summary>
+        /// <param name="targetUserId">User tied to the task</param>
+        /// <param name="id">Task identifier</param>
+        /// <returns></returns>
+        [Route(BASE_ROUTE + "/{id:Guid}")]
+        [HttpGet]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TaskResult>> Find([FromRoute] Guid targetUserId, [FromRoute] Guid id)
+        {
+            LogRequest(_logger);
 
-		/// <summary>
-		/// List tasks.
-		/// </summary>
-		/// <param name="completed">If true, filter only completed tasks, otherwise, only pending tasks. Optional.</param>
-		/// <param name="creatorUser">To filter creator user. Optional.</param>
-		/// <param name="targetUser">To filter target user. Optional.</param>
-		/// <param name="start">To filter completed date period. Optional.</param>
-		/// <param name="end">To filter completed date period. Optional.</param>
-		/// <param name="page">Filter page. Optional.</param>
-		/// <param name="itemsPerPage">Items quantity per result. Optional.</param>
-		/// <returns></returns>
-		[Route("Admin/Tasks")]
-		[HttpGet]
-		[Authorize(Roles = "Admin")]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<PaginationResult<TaskResult>>> Get(bool? completed, Guid? creatorUser, Guid? targetUser, DateTime? start, DateTime? end, int page, int itemsPerPage)
-		{
-			try
-			{
-				var filter = new TaskFilter()
-				{
-					Completed = completed,
-					CreatorUser = creatorUser,
-					TargetUser = targetUser,
-					UserFilter = FilterHelper.AND,
-					CompletedBetween = new Period(start, end),
-					Page = page,
-					ItemsPerPage = itemsPerPage
-				};
+            if (authenticatedUser.Id != targetUserId && authenticatedUser.Role != UserRole.Admin) return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to see this task details");
 
-				var result = await _repo.GetAsync(filter);
+            try
+            {
+                var result = await _repo.FindAsync(targetUserId, id);
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.ListedTasks,
-					Content = new { Filter = filter }
-				};
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Successfully listed task details.").Serialized());
 
-				_historyRepository.AddHistoryAsync(historyData);
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.ListedTasks,
+                    Content = new { TargetUserId = targetUserId, TaskId = id }
+                };
 
-				return Ok(result);
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
-		}
+                _historyRepository.AddHistoryAsync(historyData);
 
-		/// <summary>
-		/// List user taks.
-		/// </summary>
-		/// <param name="completed">If true, filter only completed tasks, otherwise, only pending tasks. Optional.</param>
-		/// <param name="start">To filter completed date period. Optional.</param>
-		/// <param name="end">To filter completed date period. Optional.</param>
-		/// <param name="page">Filter page. Optional.</param>
-		/// <param name="itemsPerPage">Items quantity per result. Optional.</param>
-		/// <returns>User tasks</returns>
-		[Route("Tasks")]
-		[HttpGet]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<PaginationResult<TaskResult>>> Get(bool? completed, DateTime? start, DateTime? end, int page, int itemsPerPage)
-		{
-			try
-			{
-				var filter = new TaskFilter()
-				{
-					Completed = completed,
-					CreatorUser = authenticatedUser.Id,
-					TargetUser = authenticatedUser.Id,
-					UserFilter = FilterHelper.OR,
-					CompletedBetween = new Period(start, end),
-					Page = page,
-					ItemsPerPage = itemsPerPage
-				};
+                return Ok(result);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Error listing task '{id}' details for user '{targetUserId}'.").Serialized());
 
-				var result = await _repo.GetAsync(filter);
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.ListedTasks,
-					Content = new { Filter = filter }
-				};
+        /// <summary>
+        /// List tasks.
+        /// </summary>
+        /// <param name="completed">If true, filter only completed tasks, otherwise, only pending tasks. Optional.</param>
+        /// <param name="creatorUser">To filter creator user. Optional.</param>
+        /// <param name="targetUser">To filter target user. Optional.</param>
+        /// <param name="start">To filter completed date period. Optional.</param>
+        /// <param name="end">To filter completed date period. Optional.</param>
+        /// <param name="page">Filter page. Optional.</param>
+        /// <param name="itemsPerPage">Items quantity per result. Optional.</param>
+        /// <returns></returns>
+        [Route("Admin/Tasks")]
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PaginationResult<TaskResult>>> Get(bool? completed, Guid? creatorUser, Guid? targetUser, DateTime? start, DateTime? end, int page, int itemsPerPage)
+        {
+            LogRequest(_logger);
 
-				_historyRepository.AddHistoryAsync(historyData);
+            TaskFilter filter = null;
 
-				return Ok(result);
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
-		}
+            try
+            {
+                filter = new TaskFilter()
+                {
+                    Completed = completed,
+                    CreatorUser = creatorUser,
+                    TargetUser = targetUser,
+                    UserFilter = FilterHelper.AND,
+                    CompletedBetween = new Period(start, end),
+                    Page = page,
+                    ItemsPerPage = itemsPerPage
+                };
 
-		/// <summary>
-		/// Finish a task.
-		/// Only creator or target user can finish a task.
-		/// </summary>
-		/// <param name="id">Task to be finished.</param>
-		[Route("Tasks/{id:Guid}/Finish")]
-		[HttpPatch]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> Finish(Guid id)
-		{
-			try
-			{
-				var data = new UserTask()
-				{
-					TaskId = id,
-					User = authenticatedUser
-				};
+                var result = await _repo.GetAsync(filter);
 
-				await _repo.FinishAsync(data);
-				await _repo.SaveChangesAsync();
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Successfully listed tasks.", filter).Serialized());
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.FinishedTask,
-					Content = new { TaskId = id }
-				};
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.ListedTasks,
+                    Content = new { Filter = filter }
+                };
 
-				_historyRepository.AddHistoryAsync(historyData);
-			
-				return NoContent();
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
+                _historyRepository.AddHistoryAsync(historyData);
 
-		}
+                return Ok(result);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, "Error listing tasks.", filter).Serialized());
 
-		/// <summary>
-		/// Reopen a task.
-		/// Only creator or target user can reopen a task.
-		/// </summary>
-		/// <param name="id">Task to be reopened.</param>		
-		[Route("Tasks/{id:Guid}/Reopen")]
-		[HttpPatch]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<IActionResult> Reopen(Guid id)
-		{
-			try
-			{
-				var data = new UserTask()
-				{
-					TaskId = id,
-					User = authenticatedUser
-				};
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
 
-				await _repo.ReopenAsync(data);
-				await _repo.SaveChangesAsync();
+        /// <summary>
+        /// List user taks.
+        /// </summary>
+        /// <param name="completed">If true, filter only completed tasks, otherwise, only pending tasks. Optional.</param>
+        /// <param name="start">To filter completed date period. Optional.</param>
+        /// <param name="end">To filter completed date period. Optional.</param>
+        /// <param name="page">Filter page. Optional.</param>
+        /// <param name="itemsPerPage">Items quantity per result. Optional.</param>
+        /// <returns>User tasks</returns>
+        [Route("Tasks")]
+        [HttpGet]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PaginationResult<TaskResult>>> Get(bool? completed, DateTime? start, DateTime? end, int page, int itemsPerPage)
+        {
+            LogRequest(_logger);
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.ReopenedTask,
-					Content = new { TaskId = id }
-				};
+            TaskFilter filter = null;
 
-				_historyRepository.AddHistoryAsync(historyData);
-			
-				return NoContent();
+            try
+            {
+                filter = new TaskFilter()
+                {
+                    Completed = completed,
+                    CreatorUser = authenticatedUser.Id,
+                    TargetUser = authenticatedUser.Id,
+                    UserFilter = FilterHelper.OR,
+                    CompletedBetween = new Period(start, end),
+                    Page = page,
+                    ItemsPerPage = itemsPerPage
+                };
 
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
-		}
-	}
+                var result = await _repo.GetAsync(filter);
+
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Successfully listed tasks.", filter).Serialized());
+
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.ListedTasks,
+                    Content = new { Filter = filter }
+                };
+
+                _historyRepository.AddHistoryAsync(historyData);
+
+                return Ok(result);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Error listing tasks.", filter).Serialized());
+
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
+
+        /// <summary>
+        /// Finish a task.
+        /// Only creator or target user can finish a task.
+        /// </summary>
+        /// <param name="id">Task to be finished.</param>
+        [Route("Tasks/{id:Guid}/Finish")]
+        [HttpPatch]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Finish(Guid id)
+        {
+            LogRequest(_logger);
+
+            try
+            {
+                var data = new UserTask()
+                {
+                    TaskId = id,
+                    User = authenticatedUser
+                };
+
+                await _repo.FinishAsync(data);
+                await _repo.SaveChangesAsync();
+
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Successfully finished task '{id}'.").Serialized());
+
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.FinishedTask,
+                    Content = new { TaskId = id }
+                };
+
+                _historyRepository.AddHistoryAsync(historyData);
+
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Error finishing task '{id}'.").Serialized());
+
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
+
+        /// <summary>
+        /// Reopen a task.
+        /// Only creator or target user can reopen a task.
+        /// </summary>
+        /// <param name="id">Task to be reopened.</param>
+        [Route("Tasks/{id:Guid}/Reopen")]
+        [HttpPatch]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Reopen(Guid id)
+        {
+            LogRequest(_logger);
+
+            try
+            {
+                var data = new UserTask()
+                {
+                    TaskId = id,
+                    User = authenticatedUser
+                };
+
+                await _repo.ReopenAsync(data);
+                await _repo.SaveChangesAsync();
+
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Successfully reopened task '{id}'.").Serialized());
+
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.ReopenedTask,
+                    Content = new { TaskId = id }
+                };
+
+                _historyRepository.AddHistoryAsync(historyData);
+
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Error reopening task '{id}'.").Serialized());
+
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
+    }
 }
