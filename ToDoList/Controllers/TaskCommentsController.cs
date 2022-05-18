@@ -1,6 +1,8 @@
 ﻿using Domains;
+using Domains.Logger;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Repository.DTOs._Commom;
 using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.History;
@@ -13,114 +15,128 @@ using ToDoList.UI.Controllers.Commom;
 
 namespace ToDoList.UI.Controllers
 {
-	/// <summary>
-	/// Responsible class for tasks comments management.
-	/// </summary>
-	[ApiExplorerSettings(GroupName = "task-comments")]
-	[Route("Tasks/{id:Guid}/Comments")]
-	public class TaskCommentsController : ApiControllerBase
-	{
-		private readonly ITaskCommentRepository _repo;
-		private readonly IHistoryRepository _historyRepository;
+    /// <summary>
+    /// Responsible class for tasks comments management.
+    /// </summary>
+    [ApiExplorerSettings(GroupName = "task-comments")]
+    [Route("Tasks/{id:Guid}/Comments")]
+    public class TaskCommentsController : ApiControllerBase
+    {
+        private readonly ITaskCommentRepository _repo;
+        private readonly IHistoryRepository _historyRepository;
+        private readonly ILogger _logger;
 
-		public TaskCommentsController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskCommentRepository repo, IHistoryRepository historyRepository)
-			: base(httpContextAccessor, userRepo)
-		{
-			_repo = repo;
-			_historyRepository = historyRepository;
-		}
+        public TaskCommentsController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskCommentRepository repo, IHistoryRepository historyRepository, ILogger<TaskCommentsController> logger)
+            : base(httpContextAccessor, userRepo)
+        {
+            _repo = repo;
+            _historyRepository = historyRepository;
+            _logger = logger;
+        }
 
-		/// <summary>
-		/// Adds a comment to a given task.
-		/// </summary>
-		/// <param name="id">The target task</param>
-		/// <param name="comment">The comment to be made</param>
-		/// <returns>Comment details</returns>
-		[HttpPost]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<TaskCommentResult>> AddComment([FromRoute] Guid id, [FromBody] string comment)
-		{
-			try
-			{
-				TaskCommentData data = new TaskCommentData()
-				{
-					Comment = comment,
-					TaskId = id,
-					User = authenticatedUser
-				};
+        /// <summary>
+        /// Adds a comment to a given task.
+        /// </summary>
+        /// <param name="id">The target task</param>
+        /// <param name="comment">The comment to be made</param>
+        /// <returns>Comment details</returns>
+        [HttpPost]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TaskCommentResult>> AddComment([FromRoute] Guid id, [FromBody] string comment)
+        {
+            LogRequest(_logger);
 
-				TaskCommentResult result = await _repo.AddCommentAsync(data);
-				await _repo.SaveChangesAsync();
+            var data = new TaskCommentData()
+            {
+                Comment = comment,
+                TaskId = id,
+                User = authenticatedUser
+            };
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.AddedCommentToTask,
-					Content = new { TaskId = id, Comment = comment }
-				};
+            try
+            {
+                TaskCommentResult result = await _repo.AddCommentAsync(data);
+                await _repo.SaveChangesAsync();
 
-				_historyRepository.AddHistoryAsync(historyData);
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Successfully added task comment", result).Serialized());
 
-				return StatusCode(StatusCodes.Status201Created, result);
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
-		}
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.AddedCommentToTask,
+                    Content = new { TaskId = id, Comment = comment }
+                };
 
-		/// <summary>
-		/// List task comments made by current user.
-		/// </summary>
-		/// <param name="start">To filter completed date period. Optional.</param>
-		/// <param name="end">To filter completed date period. Optional.</param>
-		/// <param name="page">Filter page. Optional.</param>
-		/// <param name="itemsPerPage">Items quantity per result. Optional.</param>
-		/// <returns>Task comments</returns>		
-		[HttpGet]
-		[ProducesDefaultResponseType]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<PaginationResult<TaskCommentResult>>> GetComments([FromRoute] Guid id, DateTime? start, DateTime? end, int page, int itemsPerPage)
-		{
-			PaginationResult<TaskCommentResult> result;
+                _historyRepository.AddHistoryAsync(historyData);
 
-			try
-			{
-				TaskCommentFilter filter = new TaskCommentFilter()
-				{
-					TaskId = id,
-					CreatedBetween = new Period(start, end),
-					Page = page,
-					ItemsPerPage = itemsPerPage
-				};
+                return StatusCode(StatusCodes.Status201Created, result);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, "Adding comment failed", data).Serialized());
 
-				result = await _repo.GetAsync(filter);
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
 
-				var historyData = new AddHistoryData()
-				{
-					UserId = authenticatedUser.Id,
-					Action = HistoryAction.ListedTaskComments,
-					Content = new { Filter = filter }
-				};
+        /// <summary>
+        /// List task comments made by current user.
+        /// </summary>
+        /// <param name="start">To filter completed date period. Optional.</param>
+        /// <param name="end">To filter completed date period. Optional.</param>
+        /// <param name="page">Filter page. Optional.</param>
+        /// <param name="itemsPerPage">Items quantity per result. Optional.</param>
+        /// <returns>Task comments</returns>
+        [HttpGet]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PaginationResult<TaskCommentResult>>> GetComments([FromRoute] Guid id, DateTime? start, DateTime? end, int page, int itemsPerPage)
+        {
+            LogRequest(_logger);
 
-				_historyRepository.AddHistoryAsync(historyData);
+            PaginationResult<TaskCommentResult> result;
 
-				return Ok(result);
-			}
-			catch (Exception exception)
-			{
-				int code = ExceptionController.GetStatusCode(exception);
-				return StatusCode(code, exception);
-			}
-		}
-	}
+            var filter = new TaskCommentFilter()
+            {
+                TaskId = id,
+                CreatedBetween = new Period(start, end),
+                Page = page,
+                ItemsPerPage = itemsPerPage
+            };
+
+            try
+            {
+                result = await _repo.GetAsync(filter);
+
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Listing tasks comments.", filter).Serialized());
+
+                var historyData = new AddHistoryData()
+                {
+                    UserId = authenticatedUser.Id,
+                    Action = HistoryAction.ListedTaskComments,
+                    Content = new { Filter = filter }
+                };
+
+                _historyRepository.AddHistoryAsync(historyData);
+
+                return Ok(result);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, "Error getting tasks comments", filter).Serialized());
+
+                int code = ExceptionController.GetStatusCode(exception);
+                return StatusCode(code, exception);
+            }
+        }
+    }
 }
