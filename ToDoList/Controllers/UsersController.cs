@@ -51,11 +51,13 @@ namespace ToDoList.UI.Controllers
         {
             LogRequest(_logger);
 
+            UserFilter filter = null;
+
             try
             {
                 if (authenticatedUser.Role != UserRole.Admin) active = true;
 
-                var filter = new UserFilter()
+                filter = new UserFilter()
                 {
                     Name = name,
                     Login = login,
@@ -66,7 +68,7 @@ namespace ToDoList.UI.Controllers
 
                 var users = await _userRepo.GetAsync(filter);
 
-                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Successfully listed users.").Serialized());
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Successfully listed users.", filter).Serialized());
 
                 var historyData = new AddHistoryData()
                 {
@@ -81,7 +83,7 @@ namespace ToDoList.UI.Controllers
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, "Error listing users.").Serialized());
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, "Error listing users.", filter).Serialized());
 
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
@@ -171,7 +173,7 @@ namespace ToDoList.UI.Controllers
                 await _userRepo.AlterUserRoleAsync(data);
                 await _userRepo.SaveChangesAsync();
 
-                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Successfully altered user '{targetUserid}' role.").Serialized());
+                _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Successfully altered user '{targetUserid}' role.", targetUserNewRole).Serialized());
 
                 var historyData = new AddHistoryData()
                 {
@@ -186,7 +188,7 @@ namespace ToDoList.UI.Controllers
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Alter user '{targetUserid}' role failed.").Serialized());
+                _logger.LogError(exception, new LogContent(authenticatedUser.Id, ipAddress, $"Alter user '{targetUserid}' role failed.", targetUserNewRole).Serialized());
 
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
