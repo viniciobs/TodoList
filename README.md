@@ -13,7 +13,7 @@ All requests, except user creation, needs authentication and must send a token w
     Clone this repository, of course. ;D
 
 * Settings
-    > "ConnectionStrings": { "ToDoListDB": "...", "MessageBroker": "..." }, "Authentication": { "Secret": "..." }   
+    > { "ConnectionStrings": { "ToDoListDB": "...", "MessageBroker": "..." }, "Authentication": { "Secret": "..." } }   
     
     Add the above content to *usersecrets.json* file replacing with your data within the "ConnectionStrings" part, where ToDoListDB is for database and MessageBroker for messaging.    
     Also replace "..." within the "Authentication" part with a secret key only your application must know. It is gonna be your signing key.
