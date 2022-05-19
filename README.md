@@ -14,10 +14,11 @@ All requests, except user creation, needs authentication and must send a token w
 
 * Settings
 > "ConnectionStrings": {
-		"ToDoListDB": "Server=<SERVER>;Database=ToDoList;User=<USER>;Password=<PASSWORD>;"
+		"ToDoListDB": "...",
+	"MessageBroker": "..."
 	},
 	"Authentication": {
-		"Secret": "<KEY>"
+		"Secret": "..."
 	}    
 	
 Add the above content to *usersecrets.json* file replacing the server, user and password within the "ConnectionStrings" part with your data.    
