@@ -5,11 +5,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Repository.DTOs.Accounts;
-using Repository.DTOs.History;
 using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
 using ToDoList.API.Controllers.Base;
+using ToDoList.API.Services.MessageBroker.Sender;
+using ToDoList.API.Services.MessageBroker.Sender.Models;
 using ToDoList.API.Services.TokenGenerator.Interfaces;
 using ToDoList.API.Services.TokenGenerator.Models;
 using ToDoList.UI.Controllers.Commom;
@@ -27,13 +28,13 @@ namespace ToDoList.UI.Controllers
     {
         private readonly ILogger _logger;
         private readonly IAccountRepository _repo;
-        private readonly IHistoryRepository _historyRepo;
+        private readonly IHistoryMessageBroker _historyService;
 
-        public AccountsController(IAccountRepository repo, IHistoryRepository historyRepo, ILogger<AccountsController> logger)
+        public AccountsController(IAccountRepository repo, ILogger<AccountsController> logger, IHistoryMessageBroker historyService)
         {
             _logger = logger;
             _repo = repo;
-            _historyRepo = historyRepo;
+            _historyService = historyService;
         }
 
         private async Task<AuthenticationResult> Authenticate(AuthenticationData data, ITokenGenerator tokenGenerator)
@@ -44,13 +45,9 @@ namespace ToDoList.UI.Controllers
 
             await _repo.SaveChangesAsync();
 
-            var historyData = new AddHistoryData()
-            {
-                UserId = authenticationResult.UserId,
-                Action = HistoryAction.Authenticated
-            };
+            var historyData = new HistoryData(authenticationResult.UserId, HistoryAction.Authenticated);
 
-            _historyRepo.AddHistoryAsync(historyData);
+            await _historyService.PostHistoryAsync(historyData);
 
             return authenticationResult;
         }
@@ -166,13 +163,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Password successfully changed.").Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.PasswordChanged
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.PasswordChanged);
 
-                _historyRepo.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return NoContent();
             }
@@ -218,14 +211,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"User '{id}' successfully deleted.").Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.DeletedAccount,
-                    Content = new { deleted = id }
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.DeletedAccount, new { deleted = id });
 
-                _historyRepo.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
             }
             catch (Exception exception)
             {
@@ -234,35 +222,6 @@ namespace ToDoList.UI.Controllers
                 int code = ExceptionController.GetStatusCode(exception);
                 return StatusCode(code, exception);
             }
-
-            #region TODO
-
-            //var strategy = context.Database.CreateExecutionStrategy();
-
-            //await strategy.ExecuteAsync(async () =>
-            //{
-            //	await using var transaction = await context.Database.BeginTransactionAsync();
-
-            //	try
-            //	{
-            //		var targetTasks = context.Entry(user).Collection(x => x.TargetTasks).Query().Select(x => x);
-            //		context.Task.RemoveRange(targetTasks);
-
-            //		var createdTasks = context.Entry(user).Collection(x => x.CreatedTasks).Query().Select(x => x);
-            //		context.Task.RemoveRange(createdTasks);
-
-            //		context.User.Remove(user);
-
-            //		await context.SaveChangesAsync();
-            //		await transaction.CommitAsync();
-            //	}
-            //	catch (Exception exception)
-            //	{
-            //		throw new ApplicationException("Could not delete user. \n" + exception.Message);
-            //	}
-            //});
-
-            #endregion TODO
 
             return NoContent();
         }
@@ -293,13 +252,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Account successfully activated.").Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.ActivatedAccount
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.ActivatedAccount);
 
-                _historyRepo.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return NoContent();
             }
@@ -341,13 +296,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Account successfully deactivated.").Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.DeactivatedAccount
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.DeactivatedAccount);
 
-                _historyRepo.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return NoContent();
             }
@@ -389,14 +340,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Account successfully edited.", data).Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.EditedAccount,
-                    Content = data
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.EditedAccount, data);
 
-                _historyRepo.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return NoContent();
             }

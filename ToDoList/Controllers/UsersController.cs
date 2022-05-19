@@ -5,11 +5,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Repository.DTOs._Commom.Pagination;
-using Repository.DTOs.History;
 using Repository.DTOs.Users;
 using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
+using ToDoList.API.Services.MessageBroker.Sender;
+using ToDoList.API.Services.MessageBroker.Sender.Models;
 using ToDoList.UI.Controllers.Base;
 using ToDoList.UI.Controllers.Commom;
 
@@ -23,12 +24,12 @@ namespace ToDoList.UI.Controllers
     public class UsersController : ApiControllerBase
     {
         private readonly ILogger _logger;
-        private readonly IHistoryRepository _historyRepository;
+        private readonly IHistoryMessageBroker _historyService;
 
-        public UsersController(IHttpContextAccessor httpContextAccessor, IUserRepository repo, IHistoryRepository historyRepository, ILogger<UsersController> logger)
+        public UsersController(IHttpContextAccessor httpContextAccessor, IUserRepository repo, IHistoryMessageBroker historyService, ILogger<UsersController> logger)
             : base(httpContextAccessor, repo)
         {
-            _historyRepository = historyRepository;
+            _historyService = historyService;
             _logger = logger;
         }
 
@@ -70,14 +71,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Successfully listed users.", filter).Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.ListedUsers,
-                    Content = new { Filter = filter }
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.ListedUsers, new { Filter = filter });
 
-                _historyRepository.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return Ok(users);
             }
@@ -120,14 +116,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Successfully listed user '{id}' details.").Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.ListedUsers,
-                    Content = new { Id = id }
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.ListedUsers, new { Id = id });
 
-                _historyRepository.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return Ok(userResult);
             }
@@ -175,14 +166,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Successfully altered user '{targetUserid}' role.", targetUserNewRole).Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.AlteredUserRole,
-                    Content = new { TargetUserId = targetUserid, NewRole = targetUserNewRole }
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.AlteredUserRole, new { TargetUserId = targetUserid, NewRole = targetUserNewRole });
 
-                _historyRepository.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return NoContent();
             }

@@ -4,6 +4,7 @@ using Repository;
 using Repository._Commom;
 using Repository.Interfaces;
 using Repository.Interfaces_Commom;
+using ToDoList.API.Services.MessageBroker.Sender;
 using ToDoList.API.Services.TokenGenerator;
 using ToDoList.API.Services.TokenGenerator.Interfaces;
 
@@ -18,8 +19,8 @@ namespace ToDoList.API.Configurations.ServicesConfigurations
             services.AddScoped<ITaskRepository, TaskRepository>();
             services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
             services.AddScoped<IPaginationRepository, PaginationRepository>();
-            services.AddScoped<IHistoryRepository>(x => new HistoryRepository(x.GetRequiredService<ApplicationContext>(), connectionString));
             services.AddScoped<ITokenGenerator, TokenGenerator>();
+            services.AddSingleton<IHistoryMessageBroker, HistorySender>();
         }
     }
 }

@@ -6,11 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Repository.DTOs._Commom;
 using Repository.DTOs._Commom.Pagination;
-using Repository.DTOs.History;
 using Repository.DTOs.Tasks;
 using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
+using ToDoList.API.Services.MessageBroker.Sender;
+using ToDoList.API.Services.MessageBroker.Sender.Models;
 using ToDoList.UI.Controllers.Base;
 using ToDoList.UI.Controllers.Commom;
 
@@ -24,15 +25,15 @@ namespace ToDoList.UI.Controllers
     {
         private const string BASE_ROUTE = "Users/{targetUserId:Guid}/Tasks";
         private readonly ITaskRepository _repo;
-        private readonly IHistoryRepository _historyRepository;
+        private readonly IHistoryMessageBroker _historyService;
         private readonly ILogger _logger;
 
-        public TasksController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskRepository repo, IHistoryRepository historyRepository, ILogger<TasksController> logger)
+        public TasksController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskRepository repo, IHistoryMessageBroker historyService, ILogger<TasksController> logger)
             : base(httpContextAccessor, userRepo)
         {
             _repo = repo;
             _logger = logger;
-            _historyRepository = historyRepository;
+            _historyService = historyService;
         }
 
         /// <summary>
@@ -74,14 +75,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Successfully assigned task to '{targetUserId}'.", assignData).Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.AssignedTask,
-                    Content = new { TargetUserId = targetUserId, Description = description }
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.AssignedTask, new { TargetUserId = targetUserId, Description = description });
 
-                _historyRepository.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return StatusCode(StatusCodes.Status201Created, result);
             }
@@ -120,14 +116,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Successfully listed task details.").Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.ListedTasks,
-                    Content = new { TargetUserId = targetUserId, TaskId = id }
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.ListedTasks, new { TargetUserId = targetUserId, TaskId = id });
 
-                _historyRepository.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return Ok(result);
             }
@@ -182,14 +173,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Successfully listed tasks.", filter).Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.ListedTasks,
-                    Content = new { Filter = filter }
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.ListedTasks, new { Filter = filter });
 
-                _historyRepository.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return Ok(result);
             }
@@ -242,14 +228,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Successfully listed tasks.", filter).Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.ListedTasks,
-                    Content = new { Filter = filter }
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.ListedTasks, new { Filter = filter });
 
-                _historyRepository.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return Ok(result);
             }
@@ -292,14 +273,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Successfully finished task '{id}'.").Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.FinishedTask,
-                    Content = new { TaskId = id }
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.FinishedTask, new { TaskId = id });
 
-                _historyRepository.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return NoContent();
             }
@@ -342,14 +318,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, $"Successfully reopened task '{id}'.").Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.ReopenedTask,
-                    Content = new { TaskId = id }
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.ReopenedTask, new { TaskId = id });
 
-                _historyRepository.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return NoContent();
             }

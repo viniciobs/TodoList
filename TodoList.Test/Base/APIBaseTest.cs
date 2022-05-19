@@ -23,7 +23,7 @@ namespace TodoList.API.Test.Base
                 .Build();
 
             var webHostBuilder = new WebHostBuilder()
-                .UseEnvironment("Development")
+                .UseEnvironment("Test")
                 .UseConfiguration(configuration)
                 .UseStartup<Startup>();
 

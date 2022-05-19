@@ -5,11 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Repository.DTOs._Commom;
 using Repository.DTOs._Commom.Pagination;
-using Repository.DTOs.History;
 using Repository.DTOs.Tasks;
 using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
+using ToDoList.API.Services.MessageBroker.Sender;
+using ToDoList.API.Services.MessageBroker.Sender.Models;
 using ToDoList.UI.Controllers.Base;
 using ToDoList.UI.Controllers.Commom;
 
@@ -23,14 +24,14 @@ namespace ToDoList.UI.Controllers
     public class TaskCommentsController : ApiControllerBase
     {
         private readonly ITaskCommentRepository _repo;
-        private readonly IHistoryRepository _historyRepository;
+        private readonly IHistoryMessageBroker _historyService;
         private readonly ILogger _logger;
 
-        public TaskCommentsController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskCommentRepository repo, IHistoryRepository historyRepository, ILogger<TaskCommentsController> logger)
+        public TaskCommentsController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskCommentRepository repo, IHistoryMessageBroker historyRepository, ILogger<TaskCommentsController> logger)
             : base(httpContextAccessor, userRepo)
         {
             _repo = repo;
-            _historyRepository = historyRepository;
+            _historyService = historyRepository;
             _logger = logger;
         }
 
@@ -66,14 +67,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Successfully added task comment", result).Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.AddedCommentToTask,
-                    Content = new { TaskId = id, Comment = comment }
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.AddedCommentToTask, new { TaskId = id, Comment = comment });
 
-                _historyRepository.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return StatusCode(StatusCodes.Status201Created, result);
             }
@@ -119,14 +115,9 @@ namespace ToDoList.UI.Controllers
 
                 _logger.LogInformation(new LogContent(authenticatedUser.Id, ipAddress, "Listing tasks comments.", filter).Serialized());
 
-                var historyData = new AddHistoryData()
-                {
-                    UserId = authenticatedUser.Id,
-                    Action = HistoryAction.ListedTaskComments,
-                    Content = new { Filter = filter }
-                };
+                var historyData = new HistoryData(authenticatedUser.Id, HistoryAction.ListedTaskComments, new { Filter = filter });
 
-                _historyRepository.AddHistoryAsync(historyData);
+                await _historyService.PostHistoryAsync(historyData);
 
                 return Ok(result);
             }
