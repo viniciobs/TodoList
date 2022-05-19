@@ -21,8 +21,8 @@ All requests, except user creation, needs authentication and must send a token w
 		"Secret": "..."
 	}    
 	
-Add the above content to *usersecrets.json* file replacing the server, user and password within the "ConnectionStrings" part with your data.    
-Also replace <KEY> within the "Authentication" part with a secret key only your application must know.
+Add the above content to *usersecrets.json* file replacing with your data within the "ConnectionStrings" part, where ToDoListDB is for database and MessageBroker for messaging.    
+Also replace "..." within the "Authentication" part with a secret key only your application must know, because it is gonna be your signing key.
     
 * Database
     
