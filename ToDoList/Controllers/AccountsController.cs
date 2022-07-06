@@ -1,6 +1,7 @@
 ﻿using Domains;
 using Domains.Logger;
 using Domains.Services.MessageBroker;
+using Domains.Services.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,8 +11,6 @@ using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
 using ToDoList.API.Controllers.Base;
-using ToDoList.API.Services.TokenGenerator.Interfaces;
-using ToDoList.API.Services.TokenGenerator.Models;
 using ToDoList.UI.Controllers.Commom;
 
 namespace ToDoList.UI.Controllers
@@ -38,9 +37,11 @@ namespace ToDoList.UI.Controllers
 
         private async Task<AuthenticationResult> Authenticate(AuthenticationData data, ITokenGenerator tokenGenerator)
         {
-            AuthenticationResult authenticationResult = await _repo.AuthenticateAsync(data);
+            var authenticationResult = await _repo.AuthenticateAsync(data);
 
-            authenticationResult.Token = tokenGenerator.GenerateToken(ClaimsData.Convert(authenticationResult));
+            var claims = new ClaimsData(authenticationResult.UserId, authenticationResult.Role);
+
+            authenticationResult.Token = tokenGenerator.GenerateToken(claims);
 
             await _repo.SaveChangesAsync();
 

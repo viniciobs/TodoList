@@ -3,8 +3,6 @@ using Repository;
 using Repository._Commom;
 using Repository.Interfaces;
 using Repository.Interfaces_Commom;
-using ToDoList.API.Services.TokenGenerator;
-using ToDoList.API.Services.TokenGenerator.Interfaces;
 
 namespace ToDoList.API.Configurations.ServicesConfigurations
 {
@@ -17,7 +15,6 @@ namespace ToDoList.API.Configurations.ServicesConfigurations
             services.AddScoped<ITaskRepository, TaskRepository>();
             services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
             services.AddScoped<IPaginationRepository, PaginationRepository>();
-            services.AddScoped<ITokenGenerator, TokenGenerator>();
         }
     }
 }
