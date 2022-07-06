@@ -1,5 +1,6 @@
 ﻿using Domains;
 using Domains.Logger;
+using Domains.Services.MessageBroker;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,8 +11,6 @@ using Repository.DTOs.Tasks;
 using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
-using ToDoList.API.Services.MessageBroker.Sender;
-using ToDoList.API.Services.MessageBroker.Sender.Models;
 using ToDoList.UI.Controllers.Base;
 using ToDoList.UI.Controllers.Commom;
 
@@ -25,10 +24,10 @@ namespace ToDoList.UI.Controllers
     {
         private const string BASE_ROUTE = "Users/{targetUserId:Guid}/Tasks";
         private readonly ITaskRepository _repo;
-        private readonly IHistoryMessageBroker _historyService;
+        private readonly IHistoryMessageBrokerProducer _historyService;
         private readonly ILogger _logger;
 
-        public TasksController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskRepository repo, IHistoryMessageBroker historyService, ILogger<TasksController> logger)
+        public TasksController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskRepository repo, IHistoryMessageBrokerProducer historyService, ILogger<TasksController> logger)
             : base(httpContextAccessor, userRepo)
         {
             _repo = repo;

@@ -1,5 +1,6 @@
 ﻿using Domains;
 using Domains.Logger;
+using Domains.Services.MessageBroker;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -9,8 +10,6 @@ using Repository.DTOs.Tasks;
 using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
-using ToDoList.API.Services.MessageBroker.Sender;
-using ToDoList.API.Services.MessageBroker.Sender.Models;
 using ToDoList.UI.Controllers.Base;
 using ToDoList.UI.Controllers.Commom;
 
@@ -24,10 +23,10 @@ namespace ToDoList.UI.Controllers
     public class TaskCommentsController : ApiControllerBase
     {
         private readonly ITaskCommentRepository _repo;
-        private readonly IHistoryMessageBroker _historyService;
+        private readonly IHistoryMessageBrokerProducer _historyService;
         private readonly ILogger _logger;
 
-        public TaskCommentsController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskCommentRepository repo, IHistoryMessageBroker historyRepository, ILogger<TaskCommentsController> logger)
+        public TaskCommentsController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskCommentRepository repo, IHistoryMessageBrokerProducer historyRepository, ILogger<TaskCommentsController> logger)
             : base(httpContextAccessor, userRepo)
         {
             _repo = repo;

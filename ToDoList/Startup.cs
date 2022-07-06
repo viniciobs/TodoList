@@ -1,4 +1,5 @@
 using DataAccess;
+using IoC;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -20,6 +21,7 @@ namespace ToDoList.UI
         public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
+            _configuration.BindConfigurations();
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -52,7 +54,7 @@ namespace ToDoList.UI
             services.AddHttpContextAccessor();
 
             services.ConfigureServices();
-
+            services.ConfigureServicesOld();
             services.AddJwtAuthentication(_configuration.GetSection("Authentication"));
             services.AddSwagger();
         }

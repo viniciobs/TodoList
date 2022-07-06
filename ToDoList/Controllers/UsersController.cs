@@ -1,5 +1,6 @@
 ﻿using Domains;
 using Domains.Logger;
+using Domains.Services.MessageBroker;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,8 +10,6 @@ using Repository.DTOs.Users;
 using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
-using ToDoList.API.Services.MessageBroker.Sender;
-using ToDoList.API.Services.MessageBroker.Sender.Models;
 using ToDoList.UI.Controllers.Base;
 using ToDoList.UI.Controllers.Commom;
 
@@ -24,9 +23,9 @@ namespace ToDoList.UI.Controllers
     public class UsersController : ApiControllerBase
     {
         private readonly ILogger _logger;
-        private readonly IHistoryMessageBroker _historyService;
+        private readonly IHistoryMessageBrokerProducer _historyService;
 
-        public UsersController(IHttpContextAccessor httpContextAccessor, IUserRepository repo, IHistoryMessageBroker historyService, ILogger<UsersController> logger)
+        public UsersController(IHttpContextAccessor httpContextAccessor, IUserRepository repo, IHistoryMessageBrokerProducer historyService, ILogger<UsersController> logger)
             : base(httpContextAccessor, repo)
         {
             _historyService = historyService;

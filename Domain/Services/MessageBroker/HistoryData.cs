@@ -1,7 +1,6 @@
-﻿using Domains;
-using System;
+﻿using System;
 
-namespace ToDoList.API.Services.MessageBroker.Sender.Models
+namespace Domains.Services.MessageBroker
 {
     public class HistoryData
     {

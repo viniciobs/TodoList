@@ -1,6 +1,6 @@
-﻿namespace ToDoList.API.Configurations.ServicesConfigurations
+﻿namespace Domains.Services.MessageBroker
 {
-    public class Broker
+    public class BrokerConfiguration
     {
         public string HostName { get; set; }
         public string Exchange { get; set; }
