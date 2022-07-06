@@ -15,16 +15,16 @@ namespace ToDoList.UI
 {
     public class Startup
     {
-        private IConfiguration configuration { get; }
+        private IConfiguration _configuration;
 
         public Startup(IConfiguration configuration)
         {
-            this.configuration = configuration;
+            _configuration = configuration;
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            string connectionString = configuration.GetConnectionString("ToDoListDB");
+            string connectionString = _configuration.GetConnectionString("ToDoListDB");
 
             services.AddCors(options =>
             {
@@ -51,9 +51,9 @@ namespace ToDoList.UI
             services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters.Add(new StringEnumConverter()));
             services.AddHttpContextAccessor();
 
-            services.ConfigureServices(connectionString);
+            services.ConfigureServices();
 
-            services.AddJwtAuthentication(configuration.GetSection("Authentication"));
+            services.AddJwtAuthentication(_configuration.GetSection("Authentication"));
             services.AddSwagger();
         }
 
