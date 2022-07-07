@@ -4,6 +4,7 @@
 		<TargetFramework>netcoreapp3.1</TargetFramework>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<UserSecretsId>b8bf55d2-cabd-4731-9649-5e3ac0b548ca</UserSecretsId>
+		<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

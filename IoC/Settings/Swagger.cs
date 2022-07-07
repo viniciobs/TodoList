@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace ToDoList.UI.Configurations.ServicesConfigurations
+namespace IoC.Settings
 {
     public static class Swagger
     {
@@ -14,7 +14,7 @@ namespace ToDoList.UI.Configurations.ServicesConfigurations
         public static string TASKS = "tasks";
         public static string TASK_COMMENTS = "task-comments";
 
-        public static void AddSwagger(this IServiceCollection services)
+        public static void AddSwagger(this IServiceCollection services, Assembly assemblyReference)
         {
             services.AddSwaggerGenNewtonsoftSupport();
 
@@ -85,7 +85,7 @@ namespace ToDoList.UI.Configurations.ServicesConfigurations
                     }
                 });
 
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlFile = $"{assemblyReference.GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 x.IncludeXmlComments(xmlPath);
             });
@@ -97,6 +97,7 @@ namespace ToDoList.UI.Configurations.ServicesConfigurations
             {
                 return $"/swagger/{path}/swagger.json";
             }
+
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {

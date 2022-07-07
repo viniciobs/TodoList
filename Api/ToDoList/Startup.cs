@@ -1,5 +1,6 @@
 using DataAccess;
 using IoC;
+using IoC.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Converters;
 using System.Linq;
+using System.Reflection;
 using ToDoList.API.Configurations.ServicesConfigurations;
 using ToDoList.UI.Configurations.ServicesConfigurations;
 
@@ -56,7 +58,7 @@ namespace ToDoList.UI
             services.ConfigureServices();
             services.ConfigureServicesOld();
             services.AddJwtAuthentication(_configuration.GetSection("Authentication"));
-            services.AddSwagger();
+            services.AddSwagger(Assembly.GetExecutingAssembly());
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
