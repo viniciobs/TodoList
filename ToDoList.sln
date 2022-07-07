@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BackgroundServices", "Backg
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{89EB99B8-B327-45FB-8D25-64603C8B61CF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationServices", "Application\ApplicationServices\ApplicationServices.csproj", "{AAADBA51-626E-4565-BF5A-DE81EE59658A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationServices", "Application\ApplicationServices.csproj", "{AAADBA51-626E-4565-BF5A-DE81EE59658A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IoC", "IoC\IoC.csproj", "{FB474107-851F-47A6-A7EA-0E7C75A0F3DE}"
 EndProject
