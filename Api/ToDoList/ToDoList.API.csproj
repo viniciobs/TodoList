@@ -41,8 +41,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DataAccess\DataAccess.csproj" />
-		<ProjectReference Include="..\IoC\IoC.csproj" />
-		<ProjectReference Include="..\Repository\Repository.csproj" />
+	  <ProjectReference Include="..\..\Core\Domains\Domains.csproj" />
+	  <ProjectReference Include="..\..\Infra\DataAccess\DataAccess.csproj" />
+	  <ProjectReference Include="..\..\Infra\Repository\Repository.csproj" />
+	  <ProjectReference Include="..\..\IoC\IoC.csproj" />
 	</ItemGroup>
 </Project>
