@@ -1,6 +1,6 @@
 ﻿using Domains;
-using Repository.DTOs._Commom;
-using Repository.DTOs._Commom.Pagination;
+using Repository.Pagination;
+using Repository.Util;
 using System;
 
 namespace Repository.DTOs.Tasks

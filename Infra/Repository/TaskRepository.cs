@@ -2,12 +2,11 @@
 using Domains;
 using Domains.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using Repository.DTOs._Commom;
-using Repository.DTOs._Commom.Pagination;
 using Repository.DTOs.Tasks;
 using Repository.Interfaces;
 using Repository.Interfaces._Commom;
 using Repository.Interfaces_Commom;
+using Repository.Pagination;
 using Repository.Util;
 using System;
 using System.Linq;
@@ -15,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Repository
 {
-    public class TaskRepository : _Commom.Repository, ITaskRepository, IFilterRepository<TaskResult, User.Task, TaskFilter>
+    public class TaskRepository : Base.Repository, ITaskRepository, IFilterRepository<TaskResult, User.Task, TaskFilter>
     {
         private readonly IPaginationRepository _pagination;
 

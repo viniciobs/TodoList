@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Repository;
-using Repository._Commom;
 using Repository.Interfaces;
 using Repository.Interfaces_Commom;
+using Repository.Pagination;
 
 namespace ToDoList.API.Configurations.ServicesConfigurations
 {
