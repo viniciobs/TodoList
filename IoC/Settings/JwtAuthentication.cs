@@ -1,15 +1,14 @@
 ﻿using Domains;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace ToDoList.UI.Configurations.ServicesConfigurations
+namespace IoC.Settings
 {
     public static class JwtAuthentication
     {
-        public static void AddJwtAuthentication(this IServiceCollection services, IConfigurationSection authenticationSection)
+        public static void AddJwtAuthentication(this IServiceCollection services)
         {
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {

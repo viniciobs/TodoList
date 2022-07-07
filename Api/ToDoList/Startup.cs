@@ -12,7 +12,6 @@ using Newtonsoft.Json.Converters;
 using System.Linq;
 using System.Reflection;
 using ToDoList.API.Configurations.ServicesConfigurations;
-using ToDoList.UI.Configurations.ServicesConfigurations;
 
 namespace ToDoList.UI
 {
@@ -57,7 +56,7 @@ namespace ToDoList.UI
 
             services.ConfigureServices();
             services.ConfigureServicesOld();
-            services.AddJwtAuthentication(_configuration.GetSection("Authentication"));
+            services.AddJwtAuthentication();
             services.AddSwagger(Assembly.GetExecutingAssembly());
         }
 
