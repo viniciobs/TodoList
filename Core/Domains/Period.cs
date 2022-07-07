@@ -1,7 +1,7 @@
 ﻿using Domains.Exceptions;
 using System;
 
-namespace Repository.DTOs._Commom
+namespace Domains
 {
     public class Period
     {

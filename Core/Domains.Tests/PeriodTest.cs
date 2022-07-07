@@ -1,9 +1,8 @@
 ﻿using Domains.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Repository.DTOs._Commom;
 using System;
 
-namespace Repository.Tests
+namespace Domains.Tests
 {
     [TestClass]
     public class PeriodTest
@@ -22,8 +21,14 @@ namespace Repository.Tests
         [DataRow("2022-01-30", "2022-01-31")]
         public void CreateWithNonNullParametersAndEnsureHasValuePropertyReturnsTrue(string startDate, string endDate)
         {
-            DateTime? start = string.IsNullOrEmpty(startDate) ? null : DateTime.Parse(startDate);
-            DateTime? end = string.IsNullOrEmpty(endDate) ? null : DateTime.Parse(endDate);
+            DateTime? start = null;
+            DateTime? end = null;
+
+            if (!string.IsNullOrEmpty(startDate))
+                start = DateTime.Parse(startDate);
+
+            if (!string.IsNullOrEmpty(endDate))
+                end = DateTime.Parse(endDate);
 
             var period = new Period(start, end);
 

@@ -1,4 +1,5 @@
-﻿using Domains.Exceptions;
+﻿using Domains;
+using Domains.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Repository.DTOs._Commom;

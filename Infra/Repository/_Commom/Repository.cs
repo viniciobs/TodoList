@@ -4,32 +4,18 @@ using System.Threading.Tasks;
 
 namespace Repository._Commom
 {
-	public abstract class Repository
-	{
-		#region Properties
+    public abstract class Repository
+    {
+        protected readonly ApplicationContext _db;
 
-		protected readonly ApplicationContext _db;
+        public Repository(ApplicationContext applicationContext)
+        {
+            _db = applicationContext ?? throw new MissingArgumentsException(nameof(applicationContext));
+        }
 
-		#endregion Properties
-
-		#region Constructor
-
-		public Repository(ApplicationContext applicationContext)
-		{
-			if (applicationContext == null) throw new MissingArgumentsException(nameof(applicationContext));
-
-			_db = applicationContext;
-		}
-
-		#endregion Constructor
-
-		#region Methods
-
-		public async Task SaveChangesAsync()
-		{
-			await _db.SaveChangesAsync();
-		}
-
-		#endregion Methods
-	}
+        public async Task SaveChangesAsync()
+        {
+            await _db.SaveChangesAsync();
+        }
+    }
 }
