@@ -28,8 +28,11 @@ Clone this repository, of course. ;D
   }
 }
 ```    
-   Add the above content to *usersecrets.json* file on API project replacing with your data within the "ConnectionStrings" part, where ToDoListDB is for database and MessageBroker for messaging.    
+   Add the above content to *usersecrets.json* file on API project replacing with your data within the "ConnectionStrings" part, where ToDoListDB is for database and MessageBroker for messaging.        
     Also replace "..." within the "Authentication" part with a secret key only your application must know. It is gonna be your signing key.
+    
+* Messaging    
+This project use RabbitMQ and already has its (direct) exchanges and queues configured as durable on admin panel.
     
 * Database    
 Now that the connection string is properly defined, open the command line tool, access the solution folder and run the database update
