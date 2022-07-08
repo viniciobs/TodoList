@@ -1,5 +1,4 @@
 ﻿using Domains.Exceptions;
-using Isopoh.Cryptography.Argon2;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;

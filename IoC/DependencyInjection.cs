@@ -5,6 +5,10 @@ using Domains.Services.MessageBroker;
 using Domains.Services.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Repository;
+using Repository.Interfaces;
+using Repository.Interfaces_Commom;
+using Repository.Pagination;
 using System.Collections.Generic;
 
 namespace IoC
@@ -18,6 +22,13 @@ namespace IoC
 
             // MessageBroker
             services.AddSingleton<IHistoryMessageBrokerProducer, HistoryMessageBrokerProducer>();
+
+            // Repository
+            services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<ITaskRepository, TaskRepository>();
+            services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
+            services.AddScoped<IPaginationRepository, PaginationRepository>();
 
             return services;
         }

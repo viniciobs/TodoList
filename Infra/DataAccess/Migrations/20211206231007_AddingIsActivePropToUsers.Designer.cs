@@ -62,7 +62,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("Login")
                         .IsUnique()
-                        .HasDatabaseName("IX_User_Login");
+                        .HasName("IX_User_Login");
 
                     b.ToTable("Users");
                 });
@@ -143,9 +143,7 @@ namespace DataAccess.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.Navigation("CreatorUser");
-
-                    b.Navigation("TargetUser");
+                 
                 });
 
             modelBuilder.Entity("Domains.User+Task+TaskComment", b =>
@@ -164,24 +162,9 @@ namespace DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Task");
+                   
                 });
 
-            modelBuilder.Entity("Domains.User", b =>
-                {
-                    b.Navigation("CreatedTasks");
-
-                    b.Navigation("TargetTasks");
-
-                    b.Navigation("TaskComments");
-                });
-
-            modelBuilder.Entity("Domains.User+Task", b =>
-                {
-                    b.Navigation("Comments");
-                });
 #pragma warning restore 612, 618
         }
     }
