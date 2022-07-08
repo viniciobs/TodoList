@@ -1,11 +1,13 @@
 ﻿namespace BackgroundServices.ReportGenerator
 {
-    internal class ReportGeneratorService
+    internal class ReportGeneratorService : SchedulerService
     {
-        public void Generate()
+        protected override int StartHour { get => 20; }
+        protected override int IntervalInHours { get => 24; }
+
+        protected override void Run(object state)
         {
-            // TODO:
-            System.Console.WriteLine(System.DateTime.Now);
+            throw new System.NotImplementedException();
         }
     }
 }

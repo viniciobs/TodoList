@@ -3,19 +3,14 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BackgroundServices.ReportGenerator
+namespace BackgroundServices
 {
-    internal class SchedulerService : IHostedService
+    internal abstract class SchedulerService : IHostedService
     {
-        private const int startHour = 20;
-        private const int intervalInHours = 24;
-        private readonly ReportGeneratorService _service;
         private Timer _timer;
 
-        public SchedulerService(ReportGeneratorService service)
-        {
-            _service = service;
-        }
+        protected abstract int StartHour { get; }
+        protected abstract int IntervalInHours { get; }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
@@ -25,7 +20,7 @@ namespace BackgroundServices.ReportGenerator
                 var delay = Task.Delay(delayBeforeStart);
                 delay.Wait();
 
-                _timer = new Timer(GenerateReport, null, TimeSpan.Zero, TimeSpan.FromHours(intervalInHours));
+                _timer = new Timer(Run, null, TimeSpan.Zero, TimeSpan.FromHours(IntervalInHours));
             });
 
             Task.Run(action);
@@ -42,7 +37,7 @@ namespace BackgroundServices.ReportGenerator
 
         private TimeSpan GetIntervalToNextRun()
         {
-            var nextRunTime = DateTime.Today.AddHours(startHour);
+            var nextRunTime = DateTime.Today.AddHours(StartHour);
             var firstInterval = nextRunTime.Subtract(DateTime.Now);
 
             if (firstInterval >= TimeSpan.Zero) return firstInterval;
@@ -51,9 +46,6 @@ namespace BackgroundServices.ReportGenerator
             return nextRunTime.Subtract(DateTime.Now);
         }
 
-        private void GenerateReport(object state)
-        {
-            _service.Generate();
-        }
+        protected abstract void Run(object state);
     }
 }
