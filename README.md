@@ -11,7 +11,8 @@ All requests, except user creation, needs authentication and must send a token w
 * Clone    
 Clone this repository, of course. ;D
 
-* Settings
+* Settings    
+Add the below content to *usersecrets.json* file on API project replacing with your data.
 ```json
 {
   "ConnectionStrings": {
@@ -27,9 +28,7 @@ Clone this repository, of course. ;D
     "Secret": "..."
   }
 }
-```    
-   Add the above content to *usersecrets.json* file on API project replacing with your data within the "ConnectionStrings" part, where ToDoListDB is for database and MessageBroker for messaging.        
-    Also replace "..." within the "Authentication" part with a secret key only your application must know. It is gonna be your signing key.
+```
     
 * Messaging    
 This project use RabbitMQ and already has its (direct) exchanges and queues configured as durable on admin panel.
