@@ -11,8 +11,7 @@ namespace BackgroundServices
             using IHost host = Host.CreateDefaultBuilder(args)
                  .ConfigureServices(services =>
                  {
-                     services.AddSingleton<ReportGeneratorService>();
-                     services.AddHostedService<SchedulerService>();
+                     services.AddHostedService<ReportGeneratorService>();
                  }).Build();
 
             host.Run();

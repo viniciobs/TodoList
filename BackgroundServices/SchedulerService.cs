@@ -30,8 +30,6 @@ namespace BackgroundServices
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _timer.Change(Timeout.Infinite, 0);
-
             return Task.CompletedTask;
         }
 
