@@ -23,9 +23,9 @@ namespace ToDoList.UI.Controllers
     public class UsersController : ApiControllerBase
     {
         private readonly ILogger _logger;
-        private readonly IHistoryMessageBrokerProducer _historyService;
+        private readonly IHistoryMessageBrokerPublisher _historyService;
 
-        public UsersController(IHttpContextAccessor httpContextAccessor, IUserRepository repo, IHistoryMessageBrokerProducer historyService, ILogger<UsersController> logger)
+        public UsersController(IHttpContextAccessor httpContextAccessor, IUserRepository repo, IHistoryMessageBrokerPublisher historyService, ILogger<UsersController> logger)
             : base(httpContextAccessor, repo)
         {
             _historyService = historyService;

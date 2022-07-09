@@ -21,7 +21,7 @@ namespace IoC
             services.AddScoped<ITokenGenerator, TokenGenerator>();
 
             // MessageBroker
-            services.AddSingleton<IHistoryMessageBrokerProducer, HistoryMessageBrokerProducer>();
+            services.AddSingleton<IHistoryMessageBrokerPublisher, HistoryMessageBrokerPublisher>();
 
             // Repository
             services.AddScoped<IAccountRepository, AccountRepository>();

@@ -1,4 +1,4 @@
-﻿namespace BackgroundServices.ReportGenerator
+﻿namespace BackgroundServices
 {
     internal class ReportGeneratorService : SchedulerService
     {

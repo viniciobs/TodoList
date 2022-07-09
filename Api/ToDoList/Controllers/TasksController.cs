@@ -24,10 +24,10 @@ namespace ToDoList.UI.Controllers
     {
         private const string BASE_ROUTE = "Users/{targetUserId:Guid}/Tasks";
         private readonly ITaskRepository _repo;
-        private readonly IHistoryMessageBrokerProducer _historyService;
+        private readonly IHistoryMessageBrokerPublisher _historyService;
         private readonly ILogger _logger;
 
-        public TasksController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskRepository repo, IHistoryMessageBrokerProducer historyService, ILogger<TasksController> logger)
+        public TasksController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskRepository repo, IHistoryMessageBrokerPublisher historyService, ILogger<TasksController> logger)
             : base(httpContextAccessor, userRepo)
         {
             _repo = repo;

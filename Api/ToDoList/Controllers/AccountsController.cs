@@ -26,9 +26,9 @@ namespace ToDoList.UI.Controllers
     {
         private readonly ILogger _logger;
         private readonly IAccountRepository _repo;
-        private readonly IHistoryMessageBrokerProducer _historyService;
+        private readonly IHistoryMessageBrokerPublisher _historyService;
 
-        public AccountsController(IAccountRepository repo, ILogger<AccountsController> logger, IHistoryMessageBrokerProducer historyService)
+        public AccountsController(IAccountRepository repo, ILogger<AccountsController> logger, IHistoryMessageBrokerPublisher historyService)
         {
             _logger = logger;
             _repo = repo;

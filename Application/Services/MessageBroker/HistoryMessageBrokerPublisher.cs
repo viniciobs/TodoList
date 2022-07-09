@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace ApplicationServices.Services.MessageBroker
 {
-    public class HistoryMessageBrokerProducer : IHistoryMessageBrokerProducer
+    public class HistoryMessageBrokerPublisher : IHistoryMessageBrokerPublisher
     {
         private readonly ConnectionFactory _factory;
 
-        public HistoryMessageBrokerProducer()
+        public HistoryMessageBrokerPublisher()
         {
             _factory = new ConnectionFactory() { HostName = AppSettings.Broker.HostName };
         }

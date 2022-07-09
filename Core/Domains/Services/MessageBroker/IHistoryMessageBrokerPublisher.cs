@@ -2,7 +2,7 @@
 
 namespace Domains.Services.MessageBroker
 {
-    public interface IHistoryMessageBrokerProducer
+    public interface IHistoryMessageBrokerPublisher
     {
         Task PostHistoryAsync(HistoryData message);
     }

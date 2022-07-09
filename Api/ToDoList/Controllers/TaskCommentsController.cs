@@ -22,10 +22,10 @@ namespace ToDoList.UI.Controllers
     public class TaskCommentsController : ApiControllerBase
     {
         private readonly ITaskCommentRepository _repo;
-        private readonly IHistoryMessageBrokerProducer _historyService;
+        private readonly IHistoryMessageBrokerPublisher _historyService;
         private readonly ILogger _logger;
 
-        public TaskCommentsController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskCommentRepository repo, IHistoryMessageBrokerProducer historyRepository, ILogger<TaskCommentsController> logger)
+        public TaskCommentsController(IHttpContextAccessor httpContextAccessor, IUserRepository userRepo, ITaskCommentRepository repo, IHistoryMessageBrokerPublisher historyRepository, ILogger<TaskCommentsController> logger)
             : base(httpContextAccessor, userRepo)
         {
             _repo = repo;
