@@ -18,7 +18,9 @@ namespace ApplicationServices.Services.MessageBroker
 
         public async Task PostHistoryAsync(HistoryData history)
         {
-            var message = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(history));
+            var serializerOptions = new JsonSerializerOptions { AllowTrailingCommas = false, WriteIndented = false };
+            var serialized = JsonSerializer.Serialize(history, serializerOptions);
+            var message = Encoding.UTF8.GetBytes(serialized);
 
             using var connection = _factory.CreateConnection();
             using var channel = connection.CreateModel();

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Repository.Interfaces;
 using System;
 using System.Text;
 using System.Threading;
@@ -14,10 +15,12 @@ namespace BackgroundServices
         private readonly BrokerConfiguration _configuration;
         private readonly IConnection _connection;
         private readonly IModel _channel;
+        private readonly IHistoryRepository _service;
 
-        public HistoryConsumerService(IOptions<BrokerConfiguration> configuration)
+        public HistoryConsumerService(IOptions<BrokerConfiguration> configuration, IHistoryRepository service)
         {
             _configuration = configuration.Value;
+            _service = service;
 
             var factory = new ConnectionFactory { HostName = _configuration.Host };
 
@@ -25,23 +28,24 @@ namespace BackgroundServices
             _channel = _connection.CreateModel();
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var consumer = new EventingBasicConsumer(_channel);
 
-            consumer.Received += (sender, eventArgs) =>
+            consumer.Received += async (sender, eventArgs) =>
             {
                 try
                 {
+                    Console.WriteLine($"DeliveryTag: {eventArgs.DeliveryTag}");
+
                     var content = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
 
-                    // TODO: Save history
+                    await _service.AddHistoryAsync(content);
 
                     _channel.BasicAck(eventArgs.DeliveryTag, multiple: false);
                 }
                 catch (Exception exception)
                 {
-                    Console.WriteLine($"DeliveryTag: {eventArgs.DeliveryTag}");
                     Console.WriteLine($"{exception.Message} at {DateTime.Now}");
 
                     _channel.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: true);
@@ -49,8 +53,6 @@ namespace BackgroundServices
             };
 
             _channel.BasicConsume(_configuration.Queue, autoAck: false, consumer);
-
-            return Task.CompletedTask;
         }
     }
 }
