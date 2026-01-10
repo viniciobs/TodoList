@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -10,29 +11,32 @@ using System.Threading.Tasks;
 
 namespace BackgroundServices
 {
-    internal class HistoryConsumerService : BackgroundService
+    internal class HistoryConsumerService(
+        IOptions<BrokerConfiguration> configuration,
+        IHistoryRepository service) 
+        : BackgroundService
     {
-        private readonly BrokerConfiguration _configuration;
-        private readonly IConnection _connection;
-        private readonly IModel _channel;
-        private readonly IHistoryRepository _service;
+        private readonly IHistoryRepository _service = service;
+        private readonly BrokerConfiguration _configuration = configuration.Value;
+        private IConnection _connection;
+        private IChannel _channel;
 
-        public HistoryConsumerService(IOptions<BrokerConfiguration> configuration, IHistoryRepository service)
+        public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            _configuration = configuration.Value;
-            _service = service;
+             var factory = new ConnectionFactory { HostName = _configuration.Host };
 
-            var factory = new ConnectionFactory { HostName = _configuration.Host };
+            _connection = await factory.CreateConnectionAsync(cancellationToken);
+            _channel = await _connection.CreateChannelAsync(options: null, cancellationToken);
 
-            _connection = factory.CreateConnection();
-            _channel = _connection.CreateModel();
+            await base.StartAsync(cancellationToken);
         }
+        
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            var consumer = new EventingBasicConsumer(_channel);
+        {            
+            var consumer = new AsyncEventingBasicConsumer(_channel);
 
-            consumer.Received += async (sender, eventArgs) =>
+            consumer.ReceivedAsync += async (sender, eventArgs) =>
             {
                 try
                 {
@@ -42,17 +46,17 @@ namespace BackgroundServices
 
                     await _service.AddHistoryAsync(content);
 
-                    _channel.BasicAck(eventArgs.DeliveryTag, multiple: false);
+                    await _channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
                 }
                 catch (Exception exception)
                 {
                     Console.WriteLine($"{exception.Message} at {DateTime.Now}");
 
-                    _channel.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: true);
+                    await _channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: true);
                 }
             };
 
-            _channel.BasicConsume(_configuration.Queue, autoAck: false, consumer);
+            await _channel.BasicConsumeAsync(_configuration.Queue, autoAck: false, consumer);
         }
     }
 }

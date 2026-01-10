@@ -29,7 +29,7 @@ namespace Repository.Tests.Base
             commentRepository = new TaskCommentRepository(context, paginationRepository);
         }
 
-        protected CreateAccountData GenerateValidCreateAccountData()
+        protected static CreateAccountData GenerateValidCreateAccountData()
         {
             var randomUser = GenerateRandomUser();
 
@@ -43,7 +43,7 @@ namespace Repository.Tests.Base
             return randomValidAccountData;
         }
 
-        protected User GenerateDeactivatedUser()
+        protected static User GenerateDeactivatedUser()
         {
             var randomUser = GenerateRandomUser();
             randomUser.Deactivate();
@@ -51,7 +51,7 @@ namespace Repository.Tests.Base
             return randomUser;
         }
 
-        protected void EnsureUserIsActive(User user)
+        protected static void EnsureUserIsActive(User user)
         {
             user.Activate();
         }

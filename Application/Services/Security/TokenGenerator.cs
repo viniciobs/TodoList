@@ -23,11 +23,11 @@ namespace ApplicationServices.Services.Security
 #endif
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
+                Subject = new ClaimsIdentity(
+                [
                         new Claim(ClaimTypes.Sid, claims.UserId.ToString()),
                         new Claim(ClaimTypes.Role, claims.UserRole.ToString())
-                }),
+                ]),
                 Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };

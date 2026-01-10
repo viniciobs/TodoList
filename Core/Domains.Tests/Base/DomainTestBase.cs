@@ -14,10 +14,22 @@ namespace Domains.Tests
             adminUser = GenerateAdminUser();
         }
 
-        protected User GenerateRandomUser() => User.New(GenerateRandomString(), GenerateRandomString());
+        protected static User GenerateRandomUser()
+        {
+          var user = User.New("Normal User", GenerateRandomString());
+          user.SetPassword(GenerateRandomString());
 
-        protected User GenerateAdminUser() => User.NewAdmin();
+          return user;
+        }
 
-        protected string GenerateRandomString() => Guid.NewGuid().ToString("N").ToLower().Substring(0, 10);
+        protected static User GenerateAdminUser() 
+        {
+            var user = User.NewAdmin();
+            user.SetPassword(GenerateRandomString());
+            
+            return user;
+        }
+
+        protected static string GenerateRandomString() => Guid.NewGuid().ToString("N").ToLower()[..10];
     }
 }

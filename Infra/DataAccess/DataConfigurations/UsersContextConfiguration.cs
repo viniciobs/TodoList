@@ -38,7 +38,8 @@ namespace DataAccess.DataConfigurations
                 .IsRequired()
                 .HasDefaultValue(true);
 
-            entity.HasIndex(e => e.Login).HasName("IX_User_Login").IsUnique();
+            entity.HasIndex(e => e.Login)
+                .IsUnique();
         }
     }
 }

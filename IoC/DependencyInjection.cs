@@ -1,15 +1,14 @@
-﻿using ApplicationServices.Services.MessageBroker;
-using ApplicationServices.Services.Security;
+﻿using ApplicationServices.Services.Security;
 using Domains;
 using Domains.Services.MessageBroker;
 using Domains.Services.Security;
+using MessageBroker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Repository;
 using Repository.Interfaces;
 using Repository.Interfaces_Commom;
 using Repository.Pagination;
-using System.Collections.Generic;
 
 namespace IoC
 {
@@ -35,16 +34,8 @@ namespace IoC
 
         public static void BindConfigurations(this IConfiguration configuration)
         {
-            var bindings = new Dictionary<string, object>
-            {
-                { "MessageBroker", AppSettings.Broker },
-                { "Authentication", AppSettings.Authentication }
-            };
-
-            foreach (var item in bindings)
-            {
-                configuration.GetSection(item.Key).Bind(item.Value);
-            }
+            AppSettings.Authentication = configuration.GetSection("Authentication").Get<Authentication>();
+            AppSettings.Broker = configuration.GetSection("MessageBroker").Get<BrokerConfiguration>();           
         }
     }
 }

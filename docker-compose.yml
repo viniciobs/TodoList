@@ -1,0 +1,29 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: todolist-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${SA_PASSWORD}
+      - MSSQL_AGENT_ENABLED=true
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: todolist-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"    
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./Infra/MessageBroker/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./Infra/MessageBroker/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
+  rabbitmq_data:

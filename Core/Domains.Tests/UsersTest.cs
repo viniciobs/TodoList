@@ -11,7 +11,7 @@ namespace Domains.Tests
         [DataRow("some name", "")]
         public void CreateUserWithInvalidArguments_ThrowMissingArgumentsException(string name, string login)
         {
-            Assert.ThrowsException<MissingArgumentsException>(() => User.New(name, login));
+            Assert.ThrowsExactly<MissingArgumentsException>(() => User.New(name, login));
         }
 
         [TestMethod]
@@ -20,7 +20,7 @@ namespace Domains.Tests
         [DataRow("   ")]
         public void SetInvalidPassword_ThrowMissingArgumentsException(string password)
         {
-            Assert.ThrowsException<MissingArgumentsException>(() => normalUser.SetPassword(password));
+            Assert.ThrowsExactly<MissingArgumentsException>(() => normalUser.SetPassword(password));
         }
 
         [TestMethod]
@@ -28,7 +28,7 @@ namespace Domains.Tests
         {
             normalUser.SelfAssignTask("Test");
 
-            Assert.ThrowsException<RuleException>(() => normalUser.Deactivate());
+            Assert.ThrowsExactly<RuleException>(() => normalUser.Deactivate());
         }
 
         [TestMethod]
@@ -50,7 +50,7 @@ namespace Domains.Tests
         [DataRow("   ")]
         public void SetInvalidName_ThrowMissingArgumentException(string newName)
         {
-            Assert.ThrowsException<MissingArgumentsException>(() => normalUser.SetName(newName));
+            Assert.ThrowsExactly<MissingArgumentsException>(() => normalUser.SetName(newName));
         }
 
         [TestMethod]
@@ -59,31 +59,31 @@ namespace Domains.Tests
         [DataRow("   ")]
         public void SetInvalidLogin_ThrowMissingArgumentException(string newLogin)
         {
-            Assert.ThrowsException<MissingArgumentsException>(() => normalUser.SetLogin(newLogin));
+            Assert.ThrowsExactly<MissingArgumentsException>(() => normalUser.SetLogin(newLogin));
         }
 
         [TestMethod]
         public void NormalUserSetSelfRole_ThrowPermissionException()
         {
-            Assert.ThrowsException<PermissionException>(() => normalUser.AlterUserRole(normalUser, UserRole.Admin));
+            Assert.ThrowsExactly<PermissionException>(() => normalUser.AlterUserRole(normalUser, UserRole.Admin));
         }
 
         [TestMethod]
         public void SetRoleToNullUser_ThrowMissingArgumentsException()
         {
-            Assert.ThrowsException<MissingArgumentsException>(() => GenerateAdminUser().AlterUserRole(null, UserRole.Admin));
+            Assert.ThrowsExactly<MissingArgumentsException>(() => GenerateAdminUser().AlterUserRole(null, UserRole.Admin));
         }
 
         [TestMethod]
         public void AlterOwnRole_ThrowRuleException()
         {
-            Assert.ThrowsException<RuleException>(() => adminUser.AlterUserRole(adminUser, UserRole.Normal));
+            Assert.ThrowsExactly<RuleException>(() => adminUser.AlterUserRole(adminUser, UserRole.Normal));
         }
 
         [TestMethod]
         public void TryChangeOtherUserRoleWithTheAlreadyGivenRole_ThrowRuleException()
         {
-            Assert.ThrowsException<RuleException>(() => adminUser.AlterUserRole(normalUser, UserRole.Normal));
+            Assert.ThrowsExactly<RuleException>(() => adminUser.AlterUserRole(normalUser, UserRole.Normal));
         }
     }
 }

@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using System;
-using System.IO;
 using System.Reflection;
 
 namespace IoC.Settings
@@ -61,14 +59,16 @@ namespace IoC.Settings
                     Contact = contact
                 });
 
-                x.AddSecurityDefinition("Bearer",
-                new OpenApiSecurityScheme
-                {
-                    In = ParameterLocation.Header,
-                    Description = "Authenticate and enter \"Bearer <YOUR_JWT>\"",
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey
-                });
+                x.AddSecurityDefinition("bearer",
+                    new OpenApiSecurityScheme
+                    {
+                        In = ParameterLocation.Header,
+                        Description = "Authenticate and enter here your token",
+                        Name = "Authorization",
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "bearer",
+                        BearerFormat = "JWT"
+                    });
 
                 x.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
@@ -78,7 +78,7 @@ namespace IoC.Settings
                             Reference = new OpenApiReference
                             {
                                 Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
+                                Id = "bearer"
                             }
                         },
                         Array.Empty<string>()
@@ -93,7 +93,7 @@ namespace IoC.Settings
 
         public static void ConfigureSwaggerEndpoints(this IApplicationBuilder app)
         {
-            string getEndoint(string path)
+            static string getEndoint(string path)
             {
                 return $"/swagger/{path}/swagger.json";
             }

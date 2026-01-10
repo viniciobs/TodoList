@@ -92,7 +92,7 @@ namespace Domains
         {
             if (string.IsNullOrEmpty(password?.Trim())) throw new MissingArgumentsException(nameof(password));
 
-            Password = PasswordManager.Hash(password);
+            Password = PasswordManager.Hash(password);         
         }
 
         public void Activate()

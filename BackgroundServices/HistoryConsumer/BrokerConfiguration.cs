@@ -1,8 +1,8 @@
 ﻿namespace BackgroundServices
 {
-    internal class BrokerConfiguration
+    internal record BrokerConfiguration
     {
-        public string Host { get; set; }
-        public string Queue { get; set; }
+        public string Host { get; init; }
+        public string Queue { get; init; }
     }
 }
