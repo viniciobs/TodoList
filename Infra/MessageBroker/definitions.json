@@ -1,0 +1,51 @@
+{
+  "vhosts": [
+    { "name": "/" }
+  ],
+   "users": [
+    {
+      "name": "admin",
+      "password_hash": "whWBg8Ue5XFj7+oll8ocL3Eoe+r1zYeYPMQgecS8VZrRoLAz",
+      "tags": "administrator"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "history.exchange",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "history.queue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "history.exchange",
+      "vhost": "/",
+      "destination": "history.queue",
+      "destination_type": "queue",
+      "routing_key": "history.created",
+      "arguments": {}
+    }
+  ]
+}

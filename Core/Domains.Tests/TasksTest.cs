@@ -12,13 +12,13 @@ namespace Domains.Tests
         [DataRow("   ")]
         public void SetTaskWithInvalidDescription_ThrowsMissingArgumentsException(string taskDescription)
         {
-            Assert.ThrowsException<MissingArgumentsException>(() => normalUser.SelfAssignTask(taskDescription));
+            Assert.ThrowsExactly<MissingArgumentsException>(() => normalUser.SelfAssignTask(taskDescription));
         }
 
         [TestMethod]
         public void SetTaskToNullUser_ThrowMissingArgumentsException()
         {
-            Assert.ThrowsException<MissingArgumentsException>(() => normalUser.AssignTask(null, "Test"));
+            Assert.ThrowsExactly<MissingArgumentsException>(() => normalUser.AssignTask(null, "Test"));
         }
 
         [TestMethod]
@@ -27,13 +27,13 @@ namespace Domains.Tests
             var task = normalUser.SelfAssignTask("Test");
             normalUser.FinishTask(task);
 
-            Assert.ThrowsException<RuleException>(() => normalUser.FinishTask(task));
+            Assert.ThrowsExactly<RuleException>(() => normalUser.FinishTask(task));
         }
 
         [TestMethod]
         public void TryFinishNullTask_TrhowMissingArgumentsException()
         {
-            Assert.ThrowsException<MissingArgumentsException>(() => normalUser.FinishTask(null));
+            Assert.ThrowsExactly<MissingArgumentsException>(() => normalUser.FinishTask(null));
         }
 
         [TestMethod]
@@ -41,7 +41,7 @@ namespace Domains.Tests
         {
             var task = normalUser.SelfAssignTask("Test");
 
-            Assert.ThrowsException<PermissionException>(() => adminUser.FinishTask(task));
+            Assert.ThrowsExactly<PermissionException>(() => adminUser.FinishTask(task));
         }
 
         [TestMethod]
@@ -65,7 +65,7 @@ namespace Domains.Tests
         [TestMethod]
         public void ReopenNullTask_ThrowsMissingArgumentsException()
         {
-            Assert.ThrowsException<MissingArgumentsException>(() => normalUser.ReopenTask(null));
+            Assert.ThrowsExactly<MissingArgumentsException>(() => normalUser.ReopenTask(null));
         }
 
         [TestMethod]
@@ -76,7 +76,7 @@ namespace Domains.Tests
             var task = adminUser.AssignTask(normalUser, "Test");
             normalUser.FinishTask(task);
 
-            Assert.ThrowsException<PermissionException>(() => randomUser.ReopenTask(task));
+            Assert.ThrowsExactly<PermissionException>(() => randomUser.ReopenTask(task));
         }
 
         [TestMethod]
@@ -84,7 +84,7 @@ namespace Domains.Tests
         {
             var task = normalUser.SelfAssignTask("Test");
 
-            Assert.ThrowsException<RuleException>(() => normalUser.ReopenTask(task));
+            Assert.ThrowsExactly<RuleException>(() => normalUser.ReopenTask(task));
         }
 
         [TestMethod]

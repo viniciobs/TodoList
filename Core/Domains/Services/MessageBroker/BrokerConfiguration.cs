@@ -1,9 +1,12 @@
 ﻿namespace Domains.Services.MessageBroker
 {
-    public class BrokerConfiguration
+    public record BrokerConfiguration
     {
-        public string HostName { get; set; }
-        public string Exchange { get; set; }
-        public string RoutingKey { get; set; }
+        public string HostName { get; init; }
+        public int Port { get; init; }
+        public string UserName { get; init; }
+        public string Password { get; init; }
+        public string Exchange { get; init; }
+        public string RoutingKey { get; init; }
     }
 }

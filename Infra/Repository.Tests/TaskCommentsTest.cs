@@ -1,54 +1,55 @@
 ﻿using Domains.Exceptions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Repository.DTOs.Tasks;
 using Repository.Tests.Base;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Repository.Tests
 {
-    [TestClass]
     public class TaskCommentsTest : RepositoryTestBase
     {
-        [TestMethod]
-        public void TryAddCommentWithNullUser_ThrowMissingArgumentException()
+        [Fact]
+        public async Task TryAddCommentWithNullUser_ThrowMissingArgumentException()
         {
-            var data = new TaskCommentData();
-            data.User = null;
-            data.TaskId = Guid.NewGuid();
-            data.Comment = "Test";
+            var data = new TaskCommentData
+            {
+                User = null,
+                TaskId = Guid.NewGuid(),
+                Comment = "Test"
+            };
 
-            Assert.ThrowsExceptionAsync<MissingArgumentsException>(async () => await commentRepository.AddCommentAsync(data));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await commentRepository.AddCommentAsync(data));
         }
 
-        [TestMethod]
-        public void TryAddCommentWithDefaultGuidAsTaskId_ThrowMissingArgumentException()
+        [Fact]
+        public async Task TryAddCommentWithDefaultGuidAsTaskId_ThrowMissingArgumentException()
         {
             var data = new TaskCommentData();
             data.User = adminUser;
             data.TaskId = default;
             data.Comment = "Test";
 
-            Assert.ThrowsExceptionAsync<MissingArgumentsException>(async () => await commentRepository.AddCommentAsync(data));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await commentRepository.AddCommentAsync(data));
         }
 
-        [TestMethod]
-        [DataRow("")]
-        [DataRow("     ")]
-        [DataRow(null)]
-        public void TryAddCommentWithInvalidComment_ThrowMissingArgumentException(string comment)
+        [Theory]
+        [InlineData("")]
+        [InlineData("     ")]
+        [InlineData(null)]
+        public async Task TryAddCommentWithInvalidComment_ThrowMissingArgumentException(string comment)
         {
             var data = new TaskCommentData();
             data.User = adminUser;
             data.TaskId = Guid.NewGuid();
             data.Comment = comment;
 
-            Assert.ThrowsExceptionAsync<MissingArgumentsException>(async () => await commentRepository.AddCommentAsync(data));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await commentRepository.AddCommentAsync(data));
         }
 
-        [TestMethod]
-        public void TryAddCommentWithNonRegistgeredUser_ThrowNotFoundException()
+        [Fact]
+        public async Task TryAddCommentWithNonRegistgeredUser_ThrowNotFoundException()
         {
             var data = new TaskCommentData()
             {
@@ -57,10 +58,10 @@ namespace Repository.Tests
                 TaskId = Guid.NewGuid()
             };
 
-            Assert.ThrowsExceptionAsync<NotFoundException>(async () => await commentRepository.AddCommentAsync(data));
+            await Assert.ThrowsAsync<NotFoundException>(async () => await commentRepository.AddCommentAsync(data));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task AddComment_Ok()
         {
             EnsureUserIsActive(adminUser);
@@ -88,9 +89,9 @@ namespace Repository.Tests
 
             var comment = context.TaskComment.Single();
 
-            Assert.AreEqual(result.Comment, comment.Text);
-            Assert.AreEqual(result.UserId, comment.CreatedByUserId);
-            Assert.AreNotEqual(result.CreatedAt, default);
+            Assert.Equal(result.Comment, comment.Text);
+            Assert.Equal(result.UserId, comment.CreatedByUserId);
+            Assert.NotEqual(result.CreatedAt, default);
         }
     }
 }

@@ -43,7 +43,7 @@ namespace Domains.Tests
             var start = DateTime.Parse(startDate);
             var end = DateTime.Parse(endDate);
 
-            Assert.ThrowsException<RuleException>(() => new Period(start, end));
+            Assert.ThrowsExactly<RuleException>(() => new Period(start, end));
         }
 
         [TestMethod]

@@ -1,17 +1,16 @@
 using Domains.Exceptions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Repository.DTOs.Accounts;
 using Repository.Tests.Base;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Repository.Tests
-{
-    [TestClass]
+{    
     public class AccountsTest : RepositoryTestBase
     {
-        [TestMethod]
+        [Fact]
         public async Task CreateAccountWithExistingLogin_ThrowRuleException()
         {
             var accountData = GenerateValidCreateAccountData(); ;
@@ -19,10 +18,10 @@ namespace Repository.Tests
             await accountRepository.CreateAsync(accountData);
             await accountRepository.SaveChangesAsync();
 
-            await Assert.ThrowsExceptionAsync<RuleException>(async () => await accountRepository.CreateAsync(accountData));
+            await Assert.ThrowsAsync<RuleException>(async () => await accountRepository.CreateAsync(accountData));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateAccount_Ok()
         {
             var newAccountData = GenerateValidCreateAccountData();
@@ -31,16 +30,16 @@ namespace Repository.Tests
 
             await accountRepository.SaveChangesAsync();
 
-            Assert.IsNotNull(context.User.SingleOrDefault(x => x.Id == userId));
+            Assert.NotNull(context.User.SingleOrDefault(x => x.Id == userId));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TryDeleteUnexistentAccount_ThrowNotFoundException()
         {
-            await Assert.ThrowsExceptionAsync<NotFoundException>(async () => await accountRepository.DeleteAsync(Guid.NewGuid()));
+            await Assert.ThrowsAsync<NotFoundException>(async () => await accountRepository.DeleteAsync(Guid.NewGuid()));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task DeleteAccount_Ok()
         {
             var newAccountData = GenerateValidCreateAccountData();
@@ -51,13 +50,13 @@ namespace Repository.Tests
             await accountRepository.DeleteAsync(userId);
             await accountRepository.SaveChangesAsync();
 
-            Assert.IsFalse(context.User.Any(x => x.Id == userId));
+            Assert.False(context.User.Any(x => x.Id == userId));
         }
 
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow("")]
-        [DataRow("  ")]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("  ")]
         public async Task AuthenticateWithInvalidLogin_ThrowMissingArgumentsException(string login)
         {
             var authenticationData = new AuthenticationData()
@@ -66,13 +65,13 @@ namespace Repository.Tests
                 Password = "1234"
             };
 
-            await Assert.ThrowsExceptionAsync<MissingArgumentsException>(async () => await accountRepository.AuthenticateAsync(authenticationData));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await accountRepository.AuthenticateAsync(authenticationData));
         }
 
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow("")]
-        [DataRow("  ")]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("  ")]
         public async Task AuthenticateWithInvalidPassword_ThrowMissingArgumentsException(string password)
         {
             var authenticationData = new AuthenticationData()
@@ -81,10 +80,10 @@ namespace Repository.Tests
                 Password = password
             };
 
-            await Assert.ThrowsExceptionAsync<MissingArgumentsException>(async () => await accountRepository.AuthenticateAsync(authenticationData));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await accountRepository.AuthenticateAsync(authenticationData));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TryToAuthenticateWithInvalidAccount_ThrowNotFoundException()
         {
             AuthenticationData account = new()
@@ -93,10 +92,10 @@ namespace Repository.Tests
                 Password = "1234"
             };
 
-            await Assert.ThrowsExceptionAsync<NotFoundException>(async () => await accountRepository.AuthenticateAsync(account));
+            await Assert.ThrowsAsync<NotFoundException>(async () => await accountRepository.AuthenticateAsync(account));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task AccountAuthenticate_Ok()
         {
             var createAccountData = GenerateValidCreateAccountData();
@@ -112,22 +111,22 @@ namespace Repository.Tests
 
             var authenticationResult = await accountRepository.AuthenticateAsync(authenticateData);
 
-            Assert.IsNotNull(authenticationResult);
-            Assert.IsTrue(authenticationResult.UserId == newAccountId);
+            Assert.NotNull(authenticationResult);
+            Assert.True(authenticationResult.UserId == newAccountId);
 
             // At this point authenticationResult.Token is not setten yet.
             // Token must be validate in UI tests
 
-            Assert.IsFalse(string.IsNullOrEmpty(authenticationResult.Login.Trim()));
+            Assert.False(string.IsNullOrEmpty(authenticationResult.Login.Trim()));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TryAlterStatusOfUnexistentAccount_ThrowNotFoundException()
         {
-            await Assert.ThrowsExceptionAsync<NotFoundException>(async () => await accountRepository.AlterStatusAsync(Guid.NewGuid(), false));
+            await Assert.ThrowsAsync<NotFoundException>(async () => await accountRepository.AlterStatusAsync(Guid.NewGuid(), false));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task AccountEditWithExistentLogin_ThrowRuleException()
         {
             var createUser1 = GenerateValidCreateAccountData();
@@ -145,13 +144,13 @@ namespace Repository.Tests
 
             var user2 = context.User.Single(x => x.Id == user2Id);
 
-            await Assert.ThrowsExceptionAsync<RuleException>(async () => await accountRepository.EditAsync(user2, editData));
+            await Assert.ThrowsAsync<RuleException>(async () => await accountRepository.EditAsync(user2, editData));
         }
 
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow("")]
-        [DataRow("   ")]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
         public async Task ChangePasswordToInvalidOne_ThrowMissingArgumentException(string newPassword)
         {
             var createData = GenerateValidCreateAccountData();
@@ -167,13 +166,13 @@ namespace Repository.Tests
                 NewPassword = newPassword
             };
 
-            Assert.ThrowsException<MissingArgumentsException>(() => accountRepository.ChangePassword(user, data));
+            Assert.Throws<MissingArgumentsException>(() => accountRepository.ChangePassword(user, data));
         }
 
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow("")]
-        [DataRow("   ")]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
         public async Task ChangePasswordSendingInvalidOldPassword_ThrowMissingArgumentException(string oldPassword)
         {
             var createData = GenerateValidCreateAccountData();
@@ -189,24 +188,26 @@ namespace Repository.Tests
                 NewPassword = "1234"
             };
 
-            Assert.ThrowsException<MissingArgumentsException>(() => accountRepository.ChangePassword(user, data));
+            Assert.Throws<MissingArgumentsException>(() => accountRepository.ChangePassword(user, data));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ChangePasswordWithWrongOldPassword_ThrowRuleException()
         {
             var createData = GenerateValidCreateAccountData();
 
-            var userId = accountRepository.CreateAsync(createData).Result;
+            var userId = await accountRepository.CreateAsync(createData);
             await accountRepository.SaveChangesAsync();
 
             var user = context.User.Single(x => x.Id == userId);
 
-            ChangePasswordData data = new();
-            data.NewPassword = "test";
-            data.OldPassword = "this_p4ssw0rd_does_not_Exist_f0R_Sur3";
+            ChangePasswordData data = new()
+            {
+                NewPassword = "test",
+                OldPassword = "this_p4ssw0rd_does_not_Exist_f0R_Sur3"
+            };
 
-            Assert.ThrowsException<RuleException>(() => accountRepository.ChangePassword(user, data));
+            Assert.Throws<RuleException>(() => accountRepository.ChangePassword(user, data));
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Repository
         public async Task<TaskResult> AssignAsync(AssignTaskData data)
         {
             if (data == null) throw new MissingArgumentsException(nameof(data));
-            if (string.IsNullOrEmpty(data.Description)) throw new MissingArgumentsException(nameof(data.Description));
+            if (string.IsNullOrWhiteSpace(data.Description)) throw new MissingArgumentsException(nameof(data.Description));
             if (data.CreatorUser == null) throw new MissingArgumentsException(nameof(data.CreatorUser));
             if (data.TargetUser == null) throw new MissingArgumentsException(nameof(data.TargetUser));
             if (!data.CreatorUser.IsActive) throw new RuleException("To assign task, the user must be active");
@@ -37,8 +37,8 @@ namespace Repository
 
             await _db.Task.AddAsync(task);
 
-            _db.Entry(data.CreatorUser).State = EntityState.Detached;
-            _db.Entry(data.TargetUser).State = EntityState.Detached;
+            _db.Entry(data.CreatorUser).State = EntityState.Unchanged;
+            _db.Entry(data.TargetUser).State = EntityState.Unchanged;
 
             return TaskResult.Convert(task);
         }
@@ -54,7 +54,7 @@ namespace Repository
         public async Task FinishAsync(UserTask data)
         {
             if (data == null) throw new MissingArgumentsException(nameof(data));
-            if (data.TaskId == null || data.TaskId == default) throw new MissingArgumentsException(nameof(data.TaskId));
+            if (data.TaskId == default) throw new MissingArgumentsException(nameof(data.TaskId));
             if (data.User == null) throw new MissingArgumentsException(nameof(data.User));
 
             var task = await _db.Task.SingleOrDefaultAsync(x => x.Id == data.TaskId);
@@ -71,7 +71,7 @@ namespace Repository
         public async Task ReopenAsync(UserTask data)
         {
             if (data == null) throw new MissingArgumentsException(nameof(data));
-            if (data.TaskId == null || data.TaskId == default) throw new MissingArgumentsException(nameof(data.TaskId));
+            if (data.TaskId == default) throw new MissingArgumentsException(nameof(data.TaskId));
             if (data.User == null) throw new MissingArgumentsException(nameof(data.User));
 
             var task = await _db.Task.SingleOrDefaultAsync(x => x.Id == data.TaskId);

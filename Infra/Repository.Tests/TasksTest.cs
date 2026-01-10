@@ -1,7 +1,6 @@
 ﻿using Domains;
 using Domains.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Repository.DTOs.Tasks;
 using Repository.Pagination;
 using Repository.Tests.Base;
@@ -9,13 +8,13 @@ using Repository.Util;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Repository.Tests
 {
-    [TestClass]
     public class TasksTest : RepositoryTestBase
     {
-        [TestMethod]
+        [Fact]
         public async Task AssignToNullTargetUser_ThrowMissingArgumentsException()
         {
             var assignData = new AssignTaskData()
@@ -25,10 +24,10 @@ namespace Repository.Tests
                 TargetUser = null
             };
 
-            Assert.ThrowsExceptionAsync<MissingArgumentsException>(async () => await taskRepository.AssignAsync(assignData));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await taskRepository.AssignAsync(assignData));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task AssignToNullCreatorUser_ThrowMissingArgumentsException()
         {
             var assignData = new AssignTaskData()
@@ -38,13 +37,13 @@ namespace Repository.Tests
                 TargetUser = adminUser
             };
 
-            Assert.ThrowsExceptionAsync<MissingArgumentsException>(async () => await taskRepository.AssignAsync(assignData));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await taskRepository.AssignAsync(assignData));
         }
 
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow("")]
-        [DataRow("  ")]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("  ")]
         public async Task AssignWithNUllDescription_ThrowMissingArgumentsException(string description)
         {
             var assignData = new AssignTaskData()
@@ -54,11 +53,11 @@ namespace Repository.Tests
                 TargetUser = normalUser
             };
 
-            Assert.ThrowsExceptionAsync<MissingArgumentsException>(async () => await taskRepository.AssignAsync(assignData));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await taskRepository.AssignAsync(assignData));
         }
 
-        [TestMethod]
-        public void AssignToInactiveTargetUser_ThrowRuleException()
+        [Fact]
+        public async Task AssignToInactiveTargetUser_ThrowRuleException()
         {
             var assignData = new AssignTaskData()
             {
@@ -67,11 +66,11 @@ namespace Repository.Tests
                 Description = "Test"
             };
 
-            Assert.ThrowsExceptionAsync<RuleException>(async () => await taskRepository.AssignAsync(assignData));
+            await Assert.ThrowsAsync<RuleException>(async () => await taskRepository.AssignAsync(assignData));
         }
 
-        [TestMethod]
-        public void AssignToInactiveCreatorUser_ThrowRuleException()
+        [Fact]
+        public async Task AssignToInactiveCreatorUser_ThrowRuleException()
         {
             var assignData = new AssignTaskData()
             {
@@ -80,10 +79,10 @@ namespace Repository.Tests
                 Description = "Test"
             };
 
-            Assert.ThrowsExceptionAsync<RuleException>(async () => await taskRepository.AssignAsync(assignData));
+            await Assert.ThrowsAsync<RuleException>(async () => await taskRepository.AssignAsync(assignData));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task Assign_EnsureCreatedDateIsNull()
         {
             var data = new AssignTaskData()
@@ -101,10 +100,10 @@ namespace Repository.Tests
 
             var task = context.Task.Single(x => x.Id == taskResult.Id);
 
-            Assert.IsNull(task.CompletedAt);
+            Assert.Null(task.CompletedAt);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TryAssignToNullTargetUser_ThrowNotFoundException()
         {
             var assignData = new AssignTaskData()
@@ -114,10 +113,10 @@ namespace Repository.Tests
                 Description = "Test"
             };
 
-            Assert.ThrowsExceptionAsync<NotFoundException>(async () => await taskRepository.AssignAsync(assignData));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await taskRepository.AssignAsync(assignData));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TryAssignToNullCreatorUser_ThrowNotFoundException()
         {
             var assignData = new AssignTaskData()
@@ -127,10 +126,10 @@ namespace Repository.Tests
                 Description = "Test"
             };
 
-            Assert.ThrowsExceptionAsync<NotFoundException>(async () => await taskRepository.AssignAsync(assignData));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await taskRepository.AssignAsync(assignData));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TryFinishTaskWithNullUser_ThrowMissingArgumentException()
         {
             EnsureUserIsActive(adminUser);
@@ -151,10 +150,10 @@ namespace Repository.Tests
                 User = null
             };
 
-            Assert.ThrowsExceptionAsync<MissingArgumentsException>(async () => await taskRepository.FinishAsync(data));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await taskRepository.FinishAsync(data));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TryFinishTaskWithInvalidTaskId_ThrowMissingArgumentException()
         {
             var data = new UserTask()
@@ -163,11 +162,11 @@ namespace Repository.Tests
                 User = normalUser
             };
 
-            Assert.ThrowsExceptionAsync<MissingArgumentsException>(async () => await taskRepository.FinishAsync(data));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await taskRepository.FinishAsync(data));
         }
 
-        [TestMethod]
-        public void TryFinishTaskWithInvalidTaskId_ThrowNotFoundException()
+        [Fact]
+        public async Task TryFinishTaskWithInvalidTaskId_ThrowNotFoundException()
         {
             var data = new UserTask()
             {
@@ -175,10 +174,10 @@ namespace Repository.Tests
                 TaskId = Guid.NewGuid()
             };
 
-            Assert.ThrowsExceptionAsync<MissingArgumentsException>(async () => await taskRepository.FinishAsync(data));
+            await Assert.ThrowsAsync<NotFoundException>(async () => await taskRepository.FinishAsync(data));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task FinishTask_EnsureCompletedDateIsNotNull()
         {
             EnsureUserIsActive(normalUser);
@@ -204,10 +203,10 @@ namespace Repository.Tests
 
             var finishedTask = context.Task.Single(x => x.Id == taskToFinish.Id);
 
-            Assert.IsNotNull(finishedTask.CompletedAt);
+            Assert.NotNull(finishedTask.CompletedAt);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TryReopenWithNullUser_ThrowMissingArgumentException()
         {
             var taskToFinish = normalUser.SelfAssignTask("Test");
@@ -219,10 +218,10 @@ namespace Repository.Tests
                 TaskId = taskToFinish.Id
             };
 
-            Assert.ThrowsExceptionAsync<MissingArgumentsException>(async () => await taskRepository.ReopenAsync(data));
+            await Assert.ThrowsAsync<MissingArgumentsException>(async () => await taskRepository.ReopenAsync(data));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TryReopenWithInvalidUser_ThrowNotFoundException()
         {
             var taskToFinish = normalUser.SelfAssignTask("Test");
@@ -234,10 +233,10 @@ namespace Repository.Tests
                 TaskId = taskToFinish.Id
             };
 
-            Assert.ThrowsExceptionAsync<NotFoundException>(async () => await taskRepository.ReopenAsync(data));
+            await Assert.ThrowsAsync<NotFoundException>(async () => await taskRepository.ReopenAsync(data));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ReopenTask_EnsureCompletedDateWasNotNullAndAfterReopenedIsNull()
         {
             EnsureUserIsActive(adminUser);
@@ -259,17 +258,17 @@ namespace Repository.Tests
 
             task = context.Task.Single(x => x.Id == task.Id);
 
-            Assert.IsNotNull(task.CompletedAt);
+            Assert.NotNull(task.CompletedAt);
 
             await taskRepository.ReopenAsync(data);
             await taskRepository.SaveChangesAsync();
 
             task = context.Task.Single(x => x.Id == task.Id);
 
-            Assert.IsNull(task.CompletedAt);
+            Assert.Null(task.CompletedAt);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TestGetByFilterOk()
         {
             var randomUserId = await accountRepository.CreateAsync(GenerateValidCreateAccountData());
@@ -289,12 +288,12 @@ namespace Repository.Tests
                 Description = GenerateRandomString()
             });
 
-            var someTask = taskRepository.AssignAsync(new AssignTaskData()
+            var someTask = await taskRepository.AssignAsync(new AssignTaskData()
             {
                 CreatorUser = randomUser,
                 TargetUser = oneMoreRandomUser,
                 Description = GenerateRandomString()
-            }).Result;
+            });
 
             var randomTask = await taskRepository.AssignAsync(new AssignTaskData()
             {
@@ -305,10 +304,10 @@ namespace Repository.Tests
 
             await taskRepository.SaveChangesAsync();
 
-            Assert.AreEqual(taskRepository.GetAsync(new TaskFilter() { CreatorUser = randomUser.Id }).Result.Data.Count(), 2);
-            Assert.AreEqual(taskRepository.GetAsync(new TaskFilter() { CreatorUser = anotherRandomUser.Id }).Result.Data.Count(), 0);
-            Assert.AreEqual(taskRepository.GetAsync(new TaskFilter() { TargetUser = randomUser.Id, CreatorUser = randomUser.Id, UserFilter = FilterHelper.OR }).Result.Data.Count(), 3);
-            Assert.AreEqual(taskRepository.GetAsync(new TaskFilter() { TargetUser = randomUser.Id, CreatorUser = randomUser.Id, UserFilter = FilterHelper.AND }).Result.Data.Count(), 0);
+            Assert.Equal(2, (await taskRepository.GetAsync(new TaskFilter() { CreatorUser = randomUser.Id })).Data.Count());
+            Assert.Empty((await taskRepository.GetAsync(new TaskFilter() { CreatorUser = anotherRandomUser.Id })).Data);
+            Assert.Equal(3, (await taskRepository.GetAsync(new TaskFilter() { TargetUser = randomUser.Id, CreatorUser = randomUser.Id, UserFilter = FilterHelper.OR })).Data.Count());
+            Assert.Empty((await taskRepository.GetAsync(new TaskFilter() { TargetUser = randomUser.Id, CreatorUser = randomUser.Id, UserFilter = FilterHelper.AND })).Data);
 
             var anotherRandomTask = await taskRepository.AssignAsync(new AssignTaskData()
             {
@@ -319,17 +318,17 @@ namespace Repository.Tests
 
             await taskRepository.SaveChangesAsync();
 
-            Assert.AreEqual(taskRepository.GetAsync(new TaskFilter() { TargetUser = oneMoreRandomUser.Id, CreatorUser = oneMoreRandomUser.Id, UserFilter = FilterHelper.AND }).Result.Data.Count(), 1);
-            Assert.AreEqual(taskRepository.GetAsync(null).Result.Data.Count(), 4);
+            Assert.Single((await taskRepository.GetAsync(new TaskFilter() { TargetUser = oneMoreRandomUser.Id, CreatorUser = oneMoreRandomUser.Id, UserFilter = FilterHelper.AND })).Data);
+            Assert.Equal(4, (await taskRepository.GetAsync(null)).Data.Count());
 
             await taskRepository.FinishAsync(new UserTask() { TaskId = randomTask.Id, User = randomUser });
             await taskRepository.FinishAsync(new UserTask() { TaskId = anotherRandomTask.Id, User = oneMoreRandomUser });
 
             await taskRepository.SaveChangesAsync();
 
-            Assert.AreEqual(taskRepository.GetAsync(new TaskFilter() { Completed = true }).Result.Data.Count(), 2);
-            Assert.AreEqual(taskRepository.GetAsync(new TaskFilter() { Completed = false }).Result.Data.Count(), 2);
-            Assert.AreEqual(taskRepository.GetAsync(new TaskFilter() { Completed = null }).Result.Data.Count(), 4);
+            Assert.Equal(2, (await taskRepository.GetAsync(new TaskFilter() { Completed = true })).Data.Count());
+            Assert.Equal(2, (await taskRepository.GetAsync(new TaskFilter() { Completed = false })).Data.Count());
+            Assert.Equal(4, (await taskRepository.GetAsync(new TaskFilter() { Completed = null })).Data.Count());
 
             var date = DateTime.Today.AddDays(-2);
 
@@ -349,7 +348,7 @@ namespace Repository.Tests
 
             result = await taskRepository.GetAsync(filter);
 
-            Assert.AreEqual(result.Data.Count(), 1);
+            Assert.Single(result.Data);
 
             filter = new TaskFilter()
             {
@@ -358,7 +357,7 @@ namespace Repository.Tests
 
             result = await taskRepository.GetAsync(filter);
 
-            Assert.AreEqual(result.Data.Count(), 2);
+            Assert.Equal(2, result.Data.Count());
         }
     }
 }

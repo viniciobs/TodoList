@@ -16,11 +16,19 @@ namespace ToDoList.UI
 {
     public class Startup
     {
-        private IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
 
         public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
+
+            var environmentName = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var configBuilder = new ConfigurationBuilder()                
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables();
+
+            _configuration = configBuilder.Build();
             _configuration.BindConfigurations();
         }
 
@@ -47,7 +55,7 @@ namespace ToDoList.UI
             {
                 options.EnableForHttps = true;
                 options.Providers.Add<GzipCompressionProvider>();
-                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json" });
+                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/json"]);
             });
 
             services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters.Add(new StringEnumConverter()));
@@ -55,7 +63,9 @@ namespace ToDoList.UI
 
             services.ConfigureServices();
             services.AddJwtAuthentication();
-            services.AddSwagger(Assembly.GetExecutingAssembly());
+
+            var executingAssembly = Assembly.GetExecutingAssembly();
+            services.AddSwagger(executingAssembly);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

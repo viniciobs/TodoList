@@ -1,6 +1,5 @@
 ﻿using Domains;
 using Microsoft.Data.SqlClient;
-using Newtonsoft.Json.Linq;
 using Repository.Interfaces;
 using System;
 using System.Data;
@@ -25,32 +24,30 @@ namespace Repository
 
             var history = GetHistory(serializedData);
 
-            using (var conn = new SqlConnection(_conn))
-            using (var cmd = new SqlCommand(SQL, conn))
+            using var conn = new SqlConnection(_conn);
+            using var cmd = new SqlCommand(SQL, conn);
+            cmd.Parameters.AddWithValue("@userId", history.UserId);
+            cmd.Parameters.AddWithValue("@action", (int)history.Action);
+            cmd.Parameters.AddWithValue("@datetime", history.DateTime.ToString("yyyy-MM-dd hh:mm:ss"));
+
+            if (history.Content == null)
             {
-                cmd.Parameters.AddWithValue("@userId", history.UserId);
-                cmd.Parameters.AddWithValue("@action", (int)history.Action);
-                cmd.Parameters.AddWithValue("@datetime", history.DateTime.ToString("yyyy-MM-dd hh:mm:ss"));
-
-                if (history.Content == null)
-                {
-                    cmd.Parameters.AddWithValue("@content", DBNull.Value);
-                }
-                else
-                {
-                    var content = JsonSerializer.Serialize(history.Content);
-                    cmd.Parameters.AddWithValue("@content", content);
-                }
-
-                await conn.OpenAsync();
-                await cmd.ExecuteNonQueryAsync();
-
-                if (conn.State == ConnectionState.Open)
-                    conn.Close();
+                cmd.Parameters.AddWithValue("@content", DBNull.Value);
             }
+            else
+            {
+                var content = JsonSerializer.Serialize(history.Content);
+                cmd.Parameters.AddWithValue("@content", content);
+            }
+
+            await conn.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
+
+            if (conn.State == ConnectionState.Open)
+                conn.Close();
         }
 
-        private History GetHistory(string serializedData)
+        private static History GetHistory(string serializedData)
         {
             if (string.IsNullOrEmpty(serializedData)) throw new ArgumentNullException(nameof(serializedData));
 

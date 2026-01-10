@@ -14,7 +14,7 @@ namespace Domains.Tests
         {
             var task = normalUser.SelfAssignTask("Test");
 
-            Assert.ThrowsException<MissingArgumentsException>(() => normalUser.AddComment(task, comment));
+            Assert.ThrowsExactly<MissingArgumentsException>(() => normalUser.AddComment(task, comment));
         }
 
         [TestMethod]
@@ -23,13 +23,13 @@ namespace Domains.Tests
             var task = normalUser.SelfAssignTask("Test");
             var randomUser = GenerateRandomUser();
 
-            Assert.ThrowsException<PermissionException>(() => randomUser.AddComment(task, "Test"));
+            Assert.ThrowsExactly<PermissionException>(() => randomUser.AddComment(task, "Test"));
         }
 
         [TestMethod]
         public void TryAddCommentToNullTask_ThrowMissingArgumentsException()
         {
-            Assert.ThrowsException<MissingArgumentsException>(() => normalUser.AddComment(null, "Test"));
+            Assert.ThrowsExactly<MissingArgumentsException>(() => normalUser.AddComment(null, "Test"));
         }
     }
 }

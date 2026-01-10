@@ -26,7 +26,7 @@ namespace Repository
         {
             if (data == null) throw new MissingArgumentsException(nameof(data));
             if (data.User == null) throw new MissingArgumentsException(nameof(data.User));
-            if (data.TaskId == null || data.TaskId == default) throw new MissingArgumentsException(nameof(data.TaskId));
+            if (data.TaskId == default) throw new MissingArgumentsException(nameof(data.TaskId));
             if (string.IsNullOrEmpty(data.Comment?.Trim())) throw new MissingArgumentsException(nameof(data.Comment));
 
             var task = await _db.Task.FindAsync(data.TaskId);
