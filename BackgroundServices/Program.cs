@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Repository;
 using Repository.Interfaces;
 using System;
+using Domains.Services.MessageBroker;
 
 namespace BackgroundServices
 {
@@ -11,12 +12,14 @@ namespace BackgroundServices
     {
         private static void Main(string[] args)
         {
+            var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                .AddUserSecrets<Program>()
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
                 .Build();
 
-            var connectionString = configuration.GetConnectionString("ToDoListDB");
+            var connectionString = configuration.GetConnectionString("ToDoListDB");                        
 
             using IHost host = Host.CreateDefaultBuilder(args)
                  .ConfigureServices(services =>
@@ -25,7 +28,7 @@ namespace BackgroundServices
 
                      services.AddSingleton<IHistoryRepository>(x => ActivatorUtilities.CreateInstance<HistoryRepository>(x, connectionString));
 
-                     services.AddHostedService<ReportGeneratorService>();
+                    //  services.AddHostedService<ReportGeneratorService>();
                      services.AddHostedService<HistoryConsumerService>();
                  }).Build();
 

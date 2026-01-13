@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -8,6 +7,7 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Domains.Services.MessageBroker;
 
 namespace BackgroundServices
 {
@@ -23,7 +23,13 @@ namespace BackgroundServices
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-             var factory = new ConnectionFactory { HostName = _configuration.Host };
+             var factory = new ConnectionFactory() 
+            { 
+                HostName = _configuration.HostName,
+                Port = _configuration.Port,
+                UserName = _configuration.UserName,
+                Password = _configuration.Password                                
+            };
 
             _connection = await factory.CreateConnectionAsync(cancellationToken);
             _channel = await _connection.CreateChannelAsync(options: null, cancellationToken);
@@ -31,7 +37,6 @@ namespace BackgroundServices
             await base.StartAsync(cancellationToken);
         }
         
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {            
             var consumer = new AsyncEventingBasicConsumer(_channel);
@@ -56,7 +61,7 @@ namespace BackgroundServices
                 }
             };
 
-            await _channel.BasicConsumeAsync(_configuration.Queue, autoAck: false, consumer);
+            await _channel.BasicConsumeAsync(_configuration.QueueName, autoAck: false, consumer, cancellationToken: stoppingToken);
         }
     }
 }
