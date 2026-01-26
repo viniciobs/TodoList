@@ -1,4 +1,5 @@
 using DataAccess;
+using GraphQL;
 using IoC;
 using IoC.Settings;
 using Microsoft.AspNetCore.Builder;
@@ -11,81 +12,106 @@ using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Converters;
 using System.Linq;
 using System.Reflection;
+using ToDoList.GraphQL;
+using ToDoList.GraphQL.Queries;
 
-namespace ToDoList.UI
+namespace ToDoList.UI;
+
+public class Startup
 {
-    public class Startup
+    private readonly IConfiguration _configuration;
+
+    public Startup(IConfiguration configuration)
     {
-        private readonly IConfiguration _configuration;
+        _configuration = configuration;
 
-        public Startup(IConfiguration configuration)
+        var environmentName = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var configBuilder = new ConfigurationBuilder()                
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables();
+
+        _configuration = configBuilder.Build();
+        _configuration.BindConfigurations();
+    }
+
+    public void ConfigureServices(IServiceCollection services)
+    {
+        var connectionString = _configuration.GetConnectionString("ToDoListDB");
+
+        services.AddCors(options =>
         {
-            _configuration = configuration;
-
-            var environmentName = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            var configBuilder = new ConfigurationBuilder()                
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables();
-
-            _configuration = configBuilder.Build();
-            _configuration.BindConfigurations();
-        }
-
-        public void ConfigureServices(IServiceCollection services)
-        {
-            string connectionString = _configuration.GetConnectionString("ToDoListDB");
-
-            services.AddCors(options =>
+            options.AddDefaultPolicy(builder =>
             {
-                options.AddDefaultPolicy(builder =>
+                builder
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowAnyOrigin();
+            });
+        });
+
+        services.AddDbContext<ApplicationContext>(
+            options => options.UseSqlServer(connectionString)
+        );
+
+        services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true;
+            options.Providers.Add<GzipCompressionProvider>();
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/json"]);
+        });
+
+        services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters.Add(new StringEnumConverter()));
+        services.AddHttpContextAccessor();
+
+        services.ConfigureServices();
+        services.AddJwtAuthentication();
+
+        var executingAssembly = Assembly.GetExecutingAssembly();
+        services.AddSwagger(executingAssembly);
+
+        services
+            .AddScoped<AppSchema>()
+            .AddScoped<IQuery, TaskQuery>()
+            .AddScoped<IQuery, UserQuery>()
+            .AddScoped<IQuery, HistoryQuery>();
+  
+        services.AddGraphQL(options =>
+        {            
+            options
+                .AddGraphTypes()
+                .AddSystemTextJson()
+                .AddErrorInfoProvider(opt =>
                 {
-                    builder
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowAnyOrigin();
+                    opt.ExposeExceptionDetails = true;
                 });
-            });
+        });
+    }
 
-            services.AddDbContext<ApplicationContext>(
-                options => options.UseSqlServer(connectionString)
-            );
-
-            services.AddResponseCompression(options =>
-            {
-                options.EnableForHttps = true;
-                options.Providers.Add<GzipCompressionProvider>();
-                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/json"]);
-            });
-
-            services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters.Add(new StringEnumConverter()));
-            services.AddHttpContextAccessor();
-
-            services.ConfigureServices();
-            services.AddJwtAuthentication();
-
-            var executingAssembly = Assembly.GetExecutingAssembly();
-            services.AddSwagger(executingAssembly);
-        }
-
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment())
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            app.ConfigureSwaggerEndpoints();
-
-            app.UseHttpsRedirection();
-            app.UseRouting();
-            app.UseCors();
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            app.UseResponseCompression();
-
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseDeveloperExceptionPage();
         }
+
+        app.ConfigureSwaggerEndpoints();
+
+        app.UseHttpsRedirection();
+        app.UseRouting();
+        app.UseCors();
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.UseResponseCompression();
+
+        app.UseWebSockets();
+
+        app.UseEndpoints(endpoints => 
+        { 
+            endpoints.MapControllers();
+            endpoints.MapGraphQL<AppSchema>("/graphql");
+            endpoints.MapGraphQLGraphiQL("/graphiql");            
+        });       
     }
 }
