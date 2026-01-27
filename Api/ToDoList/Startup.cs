@@ -11,6 +11,8 @@ using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Converters;
 using System.Linq;
 using System.Reflection;
+using ToDoList.GraphQL.Queries;
+using ToDoList.GraphQL.Types;
 
 namespace ToDoList.UI
 {
@@ -66,6 +68,15 @@ namespace ToDoList.UI
 
             var executingAssembly = Assembly.GetExecutingAssembly();
             services.AddSwagger(executingAssembly);
+
+            services
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddType<TaskType>()
+                .AddType<UserType>()
+                .AddProjections()
+                .AddFiltering()
+                .AddSorting();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -85,7 +96,11 @@ namespace ToDoList.UI
 
             app.UseResponseCompression();
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints => 
+            {
+                endpoints.MapControllers(); 
+                endpoints.MapGraphQL();
+            });            
         }
     }
 }

@@ -11,6 +11,9 @@
 	</PropertyGroup>	
 
 	<ItemGroup>
+		<PackageReference Include="HotChocolate.AspNetCore" Version="15.1.12" />
+		<PackageReference Include="HotChocolate.Data.EntityFramework" Version="15.1.12" />
+		<PackageReference Include="HotChocolate.Types" Version="15.1.12" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.*" />
 		<PackageReference Include="Microsoft.Azure.ServiceBus" Version="5.2.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.*">
